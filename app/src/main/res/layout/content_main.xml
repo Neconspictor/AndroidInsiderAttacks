@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffeeeeee"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="de.unipassau.fim.reallife_security.demoapp.demoapp.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/textView"
+            android:background="@android:color/transparent"
+            android:gravity="top"
+            android:orientation="vertical">
+
+            <ScrollView
+                android:id="@+id/log_scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                tools:layout_editor_absoluteX="8dp"
+                tools:layout_editor_absoluteY="3dp">
+
+                <LinearLayout
+                    android:id="@+id/log"
+                    android:layout_width="match_parent"
+                    android:layout_height="500dp"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+            </ScrollView>
+
+            <!--android:imeOptions="actionSend"-->
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentRight="false"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:orientation="horizontal"
+                android:weightSum="1"
+                tools:layout_editor_absoluteY="511dp">
+
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top"
+                    android:background="@drawable/custom_rectangle"
+                    android:minHeight="22dp"
+                    android:padding="10dp"
+                    android:visibility="visible">
+
+                    <EditText
+                        android:id="@+id/inputField"
+                        style="@android:style/Widget.Holo.AutoCompleteTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
+                        android:autoSizeTextType="uniform"
+                        android:backgroundTint="@android:color/transparent"
+                        android:elevation="0dp"
+                        android:ellipsize="middle"
+                        android:ems="10"
+                        android:inputType="textMultiLine"
+                        android:maxLines="5"
+                        android:textColorLink="@android:color/holo_green_light"
+                        android:textCursorDrawable="@drawable/black_cursor"
+                        android:theme="@style/AppTheme"
+                        app:layout_constraintStart_toStartOf="parent"
+                        tools:layout_editor_absoluteY="10dp" />
+                </android.support.constraint.ConstraintLayout>
+
+                <Button
+                    android:id="@+id/sendButton"
+                    android:layout_width="66dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|right|center_vertical|center_horizontal"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/custom_send_button"
+                    android:backgroundTint="@drawable/tint"
+                    android:visibility="visible" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!--<TextView
+        android:id="@+id/text_id"
+        android:layout_width="378dp"
+        android:layout_height="364dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:capitalize="characters"
+        android:text="hello World! How are you?"
+        android:textColor="@android:color/background_dark"
+        android:textColorHighlight="@android:color/primary_text_dark"
+        android:textSize="50dp" />-->
+
+</android.support.constraint.ConstraintLayout>
