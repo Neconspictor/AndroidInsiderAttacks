@@ -7,10 +7,26 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11")
 
+set(
+    APP_SOURCES
+
+    src/main/cpp/native-lib.cpp
+    src/main/cpp/Connection.cpp
+    src/main/cpp/Exceptions.cpp
+    src/main/cpp/File.cpp
+    src/main/cpp/Downloader.cpp
+    src/main/cpp/EvilModuleProvider.cpp
+    src/main/cpp/Util.cpp
+    src/main/cpp/Service.cpp
+)
+
+#assign_source_group(${APP_SOURCES})
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
+
 
 add_library( # Sets the name of the library.
              native-lib
@@ -19,12 +35,10 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp
-             src/main/cpp/Connection.cpp
-             src/main/cpp/ExceptionBase.cpp
-             src/main/cpp/File.cpp
-             src/main/cpp/Downloader.cpp
-             )
+             ${APP_SOURCES}
+)
+
+
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

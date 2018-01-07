@@ -6,7 +6,7 @@
 #define BACHELOR_SEMINAR_FILE_H
 
 
-#include "ExceptionBase.h"
+#include "Exceptions.h"
 
 #include <string>
 #include <fstream>
@@ -14,7 +14,7 @@
 class File {
 
 public:
-    File(std::string&& filePath);
+    File(std::string filePath);
     ~File();
 
     void openWrite(std::ios::openmode mode) throw(FileNotWritableException);

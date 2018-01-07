@@ -11,7 +11,7 @@
 
 class ExceptionBase : public std::exception {
 public:
-    ExceptionBase(std::string&& msg);
+    ExceptionBase(std::string msg);
 
     ~ExceptionBase();
 
@@ -24,27 +24,34 @@ private:
 
 class ConnectionException : public ExceptionBase {
 public:
-    ConnectionException(std::string &&msg);
+    ConnectionException(std::string msg);
     ~ConnectionException();
 };
 
 class DownloadException : public ExceptionBase {
 public:
-    DownloadException(std::string &&msg);
+    DownloadException(std::string msg);
     ~DownloadException();
 
 };
 
 class NetworkException : public ExceptionBase {
 public:
-    NetworkException(std::string &&msg);
+    NetworkException(std::string msg);
     ~NetworkException();
+
+};
+
+class NoSuchFileException : public ExceptionBase {
+public:
+    NoSuchFileException(std::string msg);
+    ~NoSuchFileException();
 
 };
 
 class FileNotWritableException : public ExceptionBase {
 public:
-    FileNotWritableException(std::string &&msg);
+    FileNotWritableException(std::string msg);
     ~FileNotWritableException();
 };
 

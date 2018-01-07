@@ -3,30 +3,34 @@
 //
 
 #include "Downloader.h"
-#include "ExceptionBase.h"
+#include "Exceptions.h"
 #include "Util.h"
 #include <fstream>
 
+using namespace std;
+using namespace util;
+
+#define LOG_TAG "EVIL_LIB::DOWNLOADER"
+
 unsigned int Downloader::OPEN_MODE = std::ios::trunc | std::ios::binary;
 
-Downloader::Downloader(std::string serverName, int port, std::string filePath) {
-    downloadFile = std::shared_ptr<File>(new File(std::move(filePath)));
+Downloader::Downloader(Service service, std::string filePath) : service(std::move(service)) {
+    downloadFile = std::shared_ptr<File>(new File(filePath));
     connPtr = std::shared_ptr<Connection>();
-
-    this->serverName = serverName;
-    this->port = port;
 
     isClosed = true;
     this->filePath = std::move(filePath);
 }
 
 Downloader::~Downloader() {
-    LOGE("Downloader::~Downloader called!");
+    logE(LOG_TAG, "Downloader::~Downloader called!");
+
     close();
 }
 
 void Downloader::close() {
-    LOGE("Downloader::close called!");
+    logE(LOG_TAG, "Downloader::close called!");
+
     File* file = downloadFile.get();
     Connection* connection = connPtr.get();
 
@@ -44,7 +48,7 @@ void Downloader::download() throw(DownloadException){
 
     try {
 
-        connPtr = std::shared_ptr<Connection>(new Connection(serverName.c_str(), port));
+        connPtr = std::shared_ptr<Connection>(new Connection(service.serverHostName.c_str(), service.port, 5));
         connection = connPtr.get();
     } catch (ConnectionException e) {
         throw DownloadException("Couldn't establish connection!");

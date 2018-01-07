@@ -6,18 +6,23 @@
 #include "Util.h"
 #include <fstream>
 
-File::File(std::string&& filePath) {
-    this->filePath = std::move(filePath);
-    file = std::shared_ptr<std::ofstream>();
+using namespace util;
+using namespace std;
+
+#define LOG_TAG "EVIL_LIB::FILE"
+
+File::File(std::string filePath) {
+    this->filePath = move(filePath);
+    file = shared_ptr<ofstream>();
 }
 
 File::~File() {
-    LOGE("File::~File called!");
+    logE(LOG_TAG, "File::~File called!");
     close();
 }
 
 void File::close() {
-    LOGE("File::close() called!");
+    logE(LOG_TAG, "File::close() called!");
     std::ofstream* filePtr = file.get();
     if (filePtr) {
         filePtr->close();

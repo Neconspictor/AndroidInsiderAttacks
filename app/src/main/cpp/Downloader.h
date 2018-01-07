@@ -7,13 +7,14 @@
 
 #include "File.h"
 #include "Connection.h"
+#include "Service.h"
 
 #include <string>
 
 class Downloader {
 public:
 
-    Downloader(std::string serverName, int port, std::string filePath);
+    Downloader(Service service, std::string filePath);
     ~Downloader();
 
     void download() throw(DownloadException);
@@ -26,8 +27,7 @@ private:
 
     static unsigned int OPEN_MODE;
 
-    std::string serverName;
-    int port;
+    Service service;
     bool isClosed;
     std::string filePath;
 };

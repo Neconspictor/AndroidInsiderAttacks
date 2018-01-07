@@ -9,12 +9,12 @@
 #include <netdb.h>
 #include <string>
 #include <netinet/in.h>
-#include "ExceptionBase.h"
+#include "Exceptions.h"
 
 class Connection {
 
 public:
-    Connection(const char *serverName, int serverPort) throw(ConnectionException);
+    Connection(const char *serverName, int serverPort, int timeOutSeconds) throw(ConnectionException);
 
     ~Connection();
 
@@ -34,12 +34,18 @@ private:
     int socketFileDesc;
     sockaddr_in serverAddress;
     bool connected;
+    int timeOutSeconds;
 
-    void __connect(const char* serverName, int serverPort) throw(ConnectionException);
 
-    void errorConnect(std::string&& msg) throw(ConnectionException);
+    void connectToServer(const char* serverName, int serverPort) throw(ConnectionException);
+    void __connect(const char* serverName, int serverPort, int timeOutSeconds) throw(ConnectionException);
+
+
+    void errorConnect(std::string msg) throw(ConnectionException);
 
     size_t get(size_t readBytes);
+
+    bool setSocketBlocking(int socket, bool blocking);
 };
 
 #endif //BACHELOR_SEMINAR_CONNECTION_H
