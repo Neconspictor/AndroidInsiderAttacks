@@ -12,3 +12,4 @@
 /decompileOAT/*.dump
 /decompileOAT/*.dex
 /decompileOAT/*.class
+*.apk
