@@ -39,3 +39,11 @@ NoSuchFileException::~NoSuchFileException() {}
 ClassNotFoundException::ClassNotFoundException(std::string msg) : ExceptionBase(msg) {}
 
 ClassNotFoundException::~ClassNotFoundException() {}
+
+AllocationException::AllocationException(std::string msg) : ExceptionBase(msg) {}
+
+AllocationException::~AllocationException() {}
+
+HookException::HookException(std::string msg) : ExceptionBase(msg) {}
+
+HookException::~HookException() {}

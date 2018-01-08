@@ -61,4 +61,16 @@ public:
     ~ClassNotFoundException();
 };
 
+class AllocationException : public ExceptionBase {
+public:
+    AllocationException(std::string msg);
+    ~AllocationException();
+};
+
+class HookException : public ExceptionBase {
+public:
+    HookException(std::string msg);
+    ~HookException();
+};
+
 #endif //BACHELOR_SEMINAR_EXCEPTIONBASE_H

@@ -37,6 +37,10 @@ namespace util {
     inline void logE(std::string tag, const char* fmt, ...) {
         __LOG_VARARGS__(ANDROID_LOG_ERROR, tag.c_str(), fmt);
     }
+
+    static inline uint32_t read32(void *addr) {
+        return *((uint32_t *)addr);
+    }
 }
 
 

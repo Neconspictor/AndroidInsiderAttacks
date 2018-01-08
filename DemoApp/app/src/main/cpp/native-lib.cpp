@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include <android/log.h>
 #include <sys/mman.h>
 
 
@@ -32,31 +31,11 @@
 #include "Downloader.h"
 #include "Util.h"
 #include "EvilModuleProvider.h"
+#include "Hook.h"
 
 using namespace std;
 using namespace util;
 
-
-/**
- * Data is based on https://android.googlesource.com/platform/art/+/oreo-release/runtime/art_method.h
- *  */
-struct ArtMethod_x86_AndroidO {
-    int declaring_class_ = 0;                       // GcRoot<mirror::Class> declaring_class_;
-    int access_flags_ = 4;                          //std::atomic<std::uint32_t> access_flags_;
-    int dex_code_item_offset_ = 8 ;                 //uint32_t dex_code_item_offset_;
-    int dex_method_index_ = 12;                     // uint32_t dex_method_index_;
-    int method_index_ = 16;                         // uint16_t method_index_;
-    int hotness_count_ = 18;                        // uint16_t hotness_count_;
-                                                    // struct PtrSizedFields {
-    int dex_cache_resolved_methods_ = 20;           // mirror::MethodDexCacheType* dex_cache_resolved_methods_; // offset: 20
-    int data_ = 24;                                 // void* data_; // offset: 24
-    int entry_point_from_quick_compiled_code_ = 28; // void* entry_point_from_quick_compiled_code_; // offset: 28
-                                                    //} ptr_sized_fields_;
-    size_t artMethodSize = 32;
-} artMethod;
-
-//https://android.googlesource.com/platform/art/+/oreo-release/runtime/modifiers.h
-int kAccNative = 0x0100;
 
 
 unsigned char jniTrampoline[] = {
@@ -178,70 +157,6 @@ unsigned char jniPayload[] = {
 
 };
 
-class Hook {
-
-private:
-    void* targetArtMethod;
-    void* backupArtMethod;
-    void* jniTrampoline_;
-    int hookAddress;
-public:
-    static inline void* genJniTrampoline() {
-
-        unsigned char* usedPayload = jniPayload;
-        unsigned int size = sizeof(jniPayload);
-        util::logE("EVIL_LIB::HOOK", "trampoline size: %i", size);
-        void* buf = mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
-
-        if(buf == MAP_FAILED) {
-            std::string errorMessage(strerror(errno));
-            errorMessage = "mmap failed: " + errorMessage;
-            const char* msg = errorMessage.c_str();
-            util::logE("EVIL_LIB::HOOK", "mmap failed!");
-            return NULL;
-        }
-
-        memcpy(buf, usedPayload, size);
-
-        return buf;
-    }
-
-public:
-
-    Hook(void* targetArtMethod, int hookAddress) {
-        this->targetArtMethod = targetArtMethod;
-        this->hookAddress = hookAddress;
-        this->backupArtMethod = malloc(artMethod.artMethodSize);
-        memcpy(this->backupArtMethod, this->targetArtMethod, artMethod.artMethodSize);
-        this->jniTrampoline_ = genJniTrampoline();
-    }
-
-    void activate() {
-        memcpy((char *) targetArtMethod + artMethod.data_, (char *) &hookAddress, 4);
-
-        memcpy((char *) targetArtMethod + artMethod.entry_point_from_quick_compiled_code_,
-               &this->jniTrampoline_, 4);
-
-        // set the target method to native so that Android O wouldn't invoke it with interpreter
-        int access_flags = read32((char *) targetArtMethod + artMethod.access_flags_);
-        util::logE("EVIL_LIB::HOOK", "access flags is 0x%x", access_flags);
-        access_flags |= kAccNative;
-        memcpy((char *) this->targetArtMethod + artMethod.access_flags_, &access_flags, 4);
-    }
-
-    void deactivate() {
-
-    }
-
-    ~Hook(){
-        free(this->backupArtMethod);
-        this->backupArtMethod = NULL;
-    }
-
-    static inline uint32_t read32(void *addr) {
-        return *((uint32_t *)addr);
-    }
-};
 
 jobject loadClass(jobject loader, const char *, JNIEnv *env) throw(ClassNotFoundException);
 
@@ -255,36 +170,6 @@ static int doBackupAndHook(void *targetMethod, int hookAddress) {
 }
 
 
-void hook_init(JNIEnv* env) {
-
-}
-
-
-/*
-  public static void test() {
-
-        ClassLoader loader = createDexPathClassLoader("EvilModule.apk");
-        String className = "evil.evilmodule.EvilModule2";
-        Class evilModuleClass = null;
-        try {
-            evilModuleClass = loader.loadClass(className);
-        } catch (ClassNotFoundException e) {
-            Log.e("ClassLoaderTest", "Couldn't load " + className, e);
-            return;
-        }
-
-        Log.e("ClassLoaderTest", "Loaded successfully " + className);
-
-        try {
-            Method foo = evilModuleClass.getMethod("foo");
-            foo.invoke(null);
-        } catch (NoSuchMethodException e) {
-            Log.e("ClassLoaderTest", "Couldn't find foo method!", e);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            Log.e("ClassLoaderTest", "Couldn't invoke foo!", e);
-        }
-    }
- * */
 
 unsigned char trampoline1[] = {
         0xb8, 0x21, 0x43, 0x65, 0x87,
@@ -316,6 +201,8 @@ void* genJniTrampoline(void* trampolineSource, size_t size) {
 
 static void fooNative(JNIEnv* env, jclass clazz) {
     logE("Java_evil_evil_1module_EvilModule_fooNative", "called!");
+    jmethodID foo = env->GetStaticMethodID(clazz, "foo", "()V");
+    env->CallStaticVoidMethod(clazz, foo);
 }
 
 
@@ -350,7 +237,7 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFrom
 
 
     logE("EVIL_LIB::stringFromJNI", "Successfully loaded evil module");
-    jmethodID evilMethod = env->GetStaticMethodID((jclass)evilModuleClass, "foo", "()V");
+    jmethodID evilMethod = env->GetStaticMethodID((jclass)evilModuleClass, "fooNative", "()V");
 
     int hookAddress = (int)(size_t) fooNative;
 
