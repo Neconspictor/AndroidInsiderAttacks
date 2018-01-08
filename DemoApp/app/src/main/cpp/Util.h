@@ -22,7 +22,8 @@ namespace util {
     jobject getGlobalContext(JNIEnv *env);
     jmethodID getMethod(JNIEnv* env, jobject obj, const char* methodName, const char* methodSig);
     std::string getInternalStorageDir(JNIEnv* env);
-    jobject createDexClassLoader(const char* dexFilePath);
+    jstring getExceptionMessage(JNIEnv* env, jthrowable ex);
+    jobject createDexClassLoader(const char* dexFilePath, JNIEnv* env);
 
 
     inline void logI(const char* tag, const char* fmt, ...) {

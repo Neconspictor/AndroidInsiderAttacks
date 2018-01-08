@@ -55,4 +55,10 @@ public:
     ~FileNotWritableException();
 };
 
+class ClassNotFoundException : public ExceptionBase {
+public:
+    ClassNotFoundException(std::string msg);
+    ~ClassNotFoundException();
+};
+
 #endif //BACHELOR_SEMINAR_EXCEPTIONBASE_H

@@ -8,6 +8,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import dalvik.system.DexClassLoader;
 import dalvik.system.PathClassLoader;
 
 /**
@@ -55,16 +56,17 @@ public class Test {
 
     public static void test() {
 
-        ClassLoader loader = createDexPathClassLoader("EvilModule.apk");
+        ClassLoader loader = createDexPathClassLoader("EvilModule.dex");
+        String className = "evil.evil_module.EvilModule";
         Class evilModuleClass = null;
         try {
-            evilModuleClass = loader.loadClass("evil.evilmodule.EvilModule2");
+            evilModuleClass = loader.loadClass(className);
         } catch (ClassNotFoundException e) {
-            Log.e("ClassLoaderTest", "Couldn't load evil.evilmodule.EvilModule!", e);
+            Log.e("ClassLoaderTest", "Couldn't load " + className, e);
             return;
         }
 
-        Log.e("ClassLoaderTest", "Loaded successfully evil.evilmodule.EvilModule");
+        Log.e("ClassLoaderTest", "Loaded successfully " + className);
 
         try {
             Method foo = evilModuleClass.getMethod("foo");

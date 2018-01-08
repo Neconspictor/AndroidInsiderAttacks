@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         stringFromJNI();
-        Test.test();
+        //Test.test();
 
     }
 

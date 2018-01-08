@@ -1,64 +1,48 @@
-0x00001040:                     57    	       push edi
-      0x00001041:                     56    	       push esi
-      0x00001042:                     55    	       push ebp
-      0x00001043:                 83C4E4    	       add esp, -28
-      0x00001046:                     50    	       push eax
-      0x00001047:               894C2434    	       mov [esp + 52], ecx
-      0x0000104b:               89542438    	       mov [esp + 56], edx
-      0x0000104f:               895C243C    	       mov [esp + 60], ebx
-      0x00001053:       C744240802000000    	       mov [esp + 8], 2
-      0x0000105b:         648B0DC4000000    	       mov ecx, fs:[0xc4]  ; top_handle_scope
-      0x00001062:               894C2404    	       mov [esp + 4], ecx
-      0x00001066:               8D4C2404    	       lea ecx, [esp + 4]
-      0x0000106a:         64890DC4000000    	       mov fs:[0xc4], ecx  ; top_handle_scope
-      0x00001071:                   8B08    	       mov ecx, [eax]
-      0x00001073:               894C240C    	       mov [esp + 12], ecx
-      0x00001077:               8B4C2438    	       mov ecx, [esp + 56]
-      0x0000107b:               894C2410    	       mov [esp + 16], ecx
-      0x0000107f:         6489258C000000    	       mov fs:[0x8c], esp  ; top_quick_frame_method
-      0x00001086:                 83C4E0    	       add esp, -32
-      0x00001089:         648B0D34000000    	       mov ecx, fs:[0x34]  ; 52
-      0x00001090:                   85C9    	       test ecx, ecx
-      0x00001092:           0F8419000000    	       jz/eq +25 (0x000010b1)
-      0x00001098:               8D4C242C    	       lea ecx, [esp + 44]
-      0x0000109c:                 890C24    	       mov [esp], ecx
-      0x0000109f:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
-      0x000010a6:               894C2404    	       mov [esp + 4], ecx
-      0x000010aa:         64FF151C030000    	       call fs:[0x31c]  ; pReadBarrierJni
-      0x000010b1:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
-      0x000010b8:                 890C24    	       mov [esp], ecx
-      0x000010bb:         64FF15C4010000    	       call fs:[0x1c4]  ; pJniMethodStart
-      0x000010c2:               89442434    	       mov [esp + 52], eax
-      0x000010c6:               8B4C245C    	       mov ecx, [esp + 92]
-      0x000010ca:               894C2410    	       mov [esp + 16], ecx
-      0x000010ce:               8B4C2430    	       mov ecx, [esp + 48]
-      0x000010d2:                   85C9    	       test ecx, ecx
-      0x000010d4:           0F8404000000    	       jz/eq +4 (0x000010de)
-      0x000010da:               8D4C2430    	       lea ecx, [esp + 48]
-      0x000010de:               894C240C    	       mov [esp + 12], ecx
-      0x000010e2:               8B4C2454    	       mov ecx, [esp + 84]
-      0x000010e6:               894C2408    	       mov [esp + 8], ecx
-      0x000010ea:               8D4C242C    	       lea ecx, [esp + 44]
-      0x000010ee:               894C2404    	       mov [esp + 4], ecx
-      0x000010f2:         648B0D9C000000    	       mov ecx, fs:[0x9c]  ; jni_env
-      0x000010f9:                 890C24    	       mov [esp], ecx
-      0x000010fc:               8B4C2420    	       mov ecx, [esp + 32]
-      0x00001100:                 FF5118    	       call [ecx + 24]
-      0x00001103:               89442438    	       mov [esp + 56], eax
-      0x00001107:               8B4C2434    	       mov ecx, [esp + 52]
-      0x0000110b:                 890C24    	       mov [esp], ecx
-      0x0000110e:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
-      0x00001115:               894C2404    	       mov [esp + 4], ecx
-      0x00001119:         64FF15D0010000    	       call fs:[0x1d0]  ; pJniMethodEnd
-      0x00001120:               8B442438    	       mov eax, [esp + 56]
-      0x00001124:                 83C420    	       add esp, 32
-      0x00001127:       64833D8400000000    	       cmp fs:[0x84], 0  ; exception
-      0x0000112f:           0F8507000000    	       jnz/ne +7 (0x0000113c)
-      0x00001135:                 83C420    	       add esp, 32
-      0x00001138:                     5D    	       pop ebp
-      0x00001139:                     5E    	       pop esi
-      0x0000113a:                     5F    	       pop edi
-      0x0000113b:                     C3    	       ret 
-      0x0000113c:         648B0584000000    	       mov eax, fs:[0x84]  ; exception
-      0x00001143:         64FF15B8020000    	       call fs:[0x2b8]  ; pDeliverException
-      0x0000114a:                     CC    	       int 3 
+0x00001270:                     57    	       push edi
+      0x00001271:                     56    	       push esi
+      0x00001272:                     55    	       push ebp
+      0x00001273:                 83C4E4    	       add esp, -28
+      0x00001276:                     50    	       push eax
+      0x00001277:       C744240801000000    	       mov [esp + 8], 1
+      0x0000127f:         648B0DC4000000    	       mov ecx, fs:[0xc4]  ; top_handle_scope
+      0x00001286:               894C2404    	       mov [esp + 4], ecx
+      0x0000128a:               8D4C2404    	       lea ecx, [esp + 4]
+      0x0000128e:         64890DC4000000    	       mov fs:[0xc4], ecx  ; top_handle_scope
+      0x00001295:                   8B08    	       mov ecx, [eax]
+      0x00001297:               894C240C    	       mov [esp + 12], ecx
+      0x0000129b:         6489258C000000    	       mov fs:[0x8c], esp  ; top_quick_frame_method
+      0x000012a2:                 83C4F0    	       add esp, -16
+      0x000012a5:         648B0D34000000    	       mov ecx, fs:[0x34]  ; 52
+      0x000012ac:                   85C9    	       test ecx, ecx
+      0x000012ae:           0F8419000000    	       jz/eq +25 (0x000012cd)
+      0x000012b4:               8D4C241C    	       lea ecx, [esp + 28]
+      0x000012b8:                 890C24    	       mov [esp], ecx
+      0x000012bb:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
+      0x000012c2:               894C2404    	       mov [esp + 4], ecx
+      0x000012c6:         64FF151C030000    	       call fs:[0x31c]  ; pReadBarrierJni
+      0x000012cd:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
+      0x000012d4:                 890C24    	       mov [esp], ecx
+      0x000012d7:         64FF15C4010000    	       call fs:[0x1c4]  ; pJniMethodStart
+      0x000012de:               89442420    	       mov [esp + 32], eax
+      0x000012e2:               8D4C241C    	       lea ecx, [esp + 28]
+      0x000012e6:               894C2404    	       mov [esp + 4], ecx
+      0x000012ea:         648B0D9C000000    	       mov ecx, fs:[0x9c]  ; jni_env
+      0x000012f1:                 890C24    	       mov [esp], ecx
+      0x000012f4:               8B4C2410    	       mov ecx, [esp + 16]
+      0x000012f8:                 FF5118    	       call [ecx + 24]
+      0x000012fb:               8B4C2420    	       mov ecx, [esp + 32]
+      0x000012ff:                 890C24    	       mov [esp], ecx
+      0x00001302:         648B0DA4000000    	       mov ecx, fs:[0xa4]  ; self
+      0x00001309:               894C2404    	       mov [esp + 4], ecx
+      0x0000130d:         64FF15D0010000    	       call fs:[0x1d0]  ; pJniMethodEnd
+      0x00001314:                 83C410    	       add esp, 16
+      0x00001317:       64833D8400000000    	       cmp fs:[0x84], 0  ; exception
+      0x0000131f:           0F8507000000    	       jnz/ne +7 (0x0000132c)
+      0x00001325:                 83C420    	       add esp, 32
+      0x00001328:                     5D    	       pop ebp
+      0x00001329:                     5E    	       pop esi
+      0x0000132a:                     5F    	       pop edi
+      0x0000132b:                     C3    	       ret 
+      0x0000132c:         648B0584000000    	       mov eax, fs:[0x84]  ; exception
+      0x00001333:         64FF15B8020000    	       call fs:[0x2b8]  ; pDeliverException
+      0x0000133a:                     CC    	       int 3 

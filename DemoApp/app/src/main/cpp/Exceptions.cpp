@@ -35,3 +35,7 @@ FileNotWritableException::~FileNotWritableException() {}
 NoSuchFileException::NoSuchFileException(string msg) : ExceptionBase(move(msg)) {}
 
 NoSuchFileException::~NoSuchFileException() {}
+
+ClassNotFoundException::ClassNotFoundException(std::string msg) : ExceptionBase(msg) {}
+
+ClassNotFoundException::~ClassNotFoundException() {}

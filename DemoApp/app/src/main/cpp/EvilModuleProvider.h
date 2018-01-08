@@ -41,7 +41,7 @@ public:
      * @return The file path to the evil java module.
      *
      */
-    std::string downloadEvilModule(JNIEnv *env) throw(DownloadException);
+    std::string downloadEvilModule(JNIEnv *env, const char* fileName) throw(DownloadException);
 
 private:
 
