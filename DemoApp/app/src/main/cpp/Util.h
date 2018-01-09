@@ -41,6 +41,18 @@ namespace util {
     static inline uint32_t read32(void *addr) {
         return *((uint32_t *)addr);
     }
+
+    static inline uint16_t read16(void *addr) {
+        return *((uint16_t *)addr);
+    }
+
+    static inline void write32(void *addr, uint32_t value) {
+        *((uint32_t *)addr) = value;
+    }
+
+    static inline void write16(void *addr, uint16_t value) {
+        *((uint16_t *)addr) = value;
+    }
 }
 
 

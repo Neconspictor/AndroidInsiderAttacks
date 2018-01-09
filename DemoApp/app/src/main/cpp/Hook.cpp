@@ -52,10 +52,10 @@ unsigned char redirectTrampoline[] = {
 };
 
 //https://android.googlesource.com/platform/art/+/oreo-release/runtime/modifiers.h
-int kAccNative = 0x0100;
+int Hook::kAccNative = 0x0100;
 
 Hook::Hook(void* hookArtMethod, void* backupArtMethod, void* targetArtMethod, int nativeHookAddress,
-unsigned char* trampoline, size_t size) throw(HookException) : jniTrampoline_(NULL),
+unsigned char* trampoline, size_t size) throw(HookException) : hookToNativeTrampoline_(NULL),
                                                                targetToHookTrampoline(NULL){
 
     this->hookArtMethod = hookArtMethod;
@@ -71,7 +71,7 @@ unsigned char* trampoline, size_t size) throw(HookException) : jniTrampoline_(NU
     trampolineSize = size;
 
     try {
-        jniTrampoline_ = genJniTrampoline(trampoline, trampolineSize);
+        hookToNativeTrampoline_ = genJniTrampoline(trampoline, trampolineSize);
     }catch (AllocationException e) {
         std::string msg("Couldn't generate jni trampoline: ");
         msg.append(e.what());
@@ -79,33 +79,71 @@ unsigned char* trampoline, size_t size) throw(HookException) : jniTrampoline_(NU
     }
 
     targetToHookTrampoline = genRedirectTrampoline(hookArtMethod, backupArtMethod);
+    targetToBackupTrampoline = genRedirectTrampoline(backupArtMethod, backupArtMethod);
+
+    // update the cached method manually
+    // first we find the array of cached methods
+    void *dexCacheResolvedMethods = (void *) read32(
+            (void *) ((char *) this->hookArtMethod + ART_METHOD.dex_cache_resolved_methods_));
+    // then we get the dex method index of the static backup method
+    methodIndex = read32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_method_index_));
+    // finally the addr of backup method is put at the corresponding location in cached methods array
+    memcpy((char *) dexCacheResolvedMethods  + 4 * methodIndex,
+           (&this->backupArtMethod),
+           4);
+
+
+    //dex_code_item_offset_ = read32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_code_item_offset_));                 //uint32_t dex_code_item_offset_;
+    //dex_method_index_ = read32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_method_index_));                    // uint32_t dex_method_index_;
+    //method_index_ = read16((void *) ((char *) this->backupArtMethod + ART_METHOD.method_index_)); // uint16_t method_index_;
+    //declaring_class_ = read32((void *) ((char *) this->backupArtMethod + ART_METHOD.declaring_class_));
 
     // copy the target art-method to the backup art-method location.
     // the backup art-method needn't be restored later. So this should be safe.
     memcpy(this->backupArtMethod, this->targetArtMethod, ART_METHOD.artMethodSize);
-}
 
-Hook::~Hook(){
-    if (jniTrampoline_ != NULL) {
-        munmap(jniTrampoline_, trampolineSize);
-        jniTrampoline_ = NULL;
-    }
+    /*dexCacheResolvedMethods = (void *) read32(
+            (void *) ((char *) this->targetArtMethod + ART_METHOD.dex_cache_resolved_methods_));
 
-    if (targetToHookTrampoline != NULL) {
-        munmap(targetToHookTrampoline, sizeof(redirectTrampoline));
-    }
-}
+    // finally the addr of backup method is put at the corresponding location in cached methods array
+    memcpy((char *) dexCacheResolvedMethods  + 4 * methodIndex,
+           (&this->backupArtMethod),
+           4);*/
 
-void Hook::activate() {
+    //write32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_code_item_offset_), dex_code_item_offset_);
+    //write32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_method_index_), dex_method_index_);
+    //write16((void *) ((char *) this->backupArtMethod + ART_METHOD.method_index_), 10);
+    //write32((void *) ((char *) this->backupArtMethod + ART_METHOD.declaring_class_), declaring_class_);
+
     directHookToNativeFunction();
 
     directTargetToHookMethod();
 }
 
-void Hook::deactivate() {}
+Hook::~Hook(){
+    /*if (hookToNativeTrampoline_ != NULL) {
+        munmap(hookToNativeTrampoline_, trampolineSize);
+        hookToNativeTrampoline_ = NULL;
+    }
+
+    if (targetToHookTrampoline != NULL) {
+        munmap(targetToHookTrampoline, sizeof(redirectTrampoline));
+    }*/
+}
+
+void Hook::activate(bool activate) {
+    //directHookToNativeFunction();
+
+    //directTargetToHookMethod();
+    activated = activate;
+}
+
+bool Hook::isActivated() {
+    return activated;
+}
 
 
-static void* Hook::genJniTrampoline(unsigned char* trampoline, unsigned int size) throw(AllocationException) {
+void* Hook::genJniTrampoline(unsigned char* trampoline, unsigned int size) throw(AllocationException) {
     logE("EVIL_LIB::HOOK", "trampoline size: %i", size);
     void* buf = generateExecutableCode(size);
     memcpy(buf, trampoline, size);
@@ -129,7 +167,7 @@ void Hook::directHookToNativeFunction() {
     // The entry point for native methods is at entry_point_from_quick_compiled_code_
     //Thus set entry_point_from_quick_compiled_code_ pointing to the jni trampoline
     memcpy((char *) hookArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
-           &this->jniTrampoline_, 4);
+           &this->hookToNativeTrampoline_, 4);
 
     //The Jni trampoline will call native code at the data_ pointer. So let us point the data_ pointer
     // to the native hook function.
@@ -137,7 +175,8 @@ void Hook::directHookToNativeFunction() {
 }
 
 void Hook::directTargetToHookMethod() {
-    memcpy((char *) targetArtMethod + ART_METHOD.data_, (char *) &nativeHookAddress, 4);
+
+   // memcpy((char *) targetArtMethod + ART_METHOD.data_, (char *) &nativeHookAddress, 4);
 
     memcpy((char *) targetArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
            &this->targetToHookTrampoline, 4);
@@ -145,6 +184,20 @@ void Hook::directTargetToHookMethod() {
     // set the target method to native so that Android O wouldn't invoke it with interpreter
     addNativeFlag(targetArtMethod);
 
+}
+
+void Hook::removeTargetRedirection() {
+    //memcpy((char *) targetArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
+    //       (char *) backupArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_, 4);
+
+    memcpy((char *) targetArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
+           &this->targetToBackupTrampoline, 4);
+
+    addNativeFlag(targetArtMethod);
+
+    //setAccessFlags(targetArtMethod, accessFlagsTargetArtBackup);
+
+    //memcpy(this->targetArtMethod, this->backupArtMethod, ART_METHOD.artMethodSize);
 }
 
 void* Hook::generateExecutableCode(size_t size) throw (AllocationException) {
@@ -159,11 +212,16 @@ void* Hook::generateExecutableCode(size_t size) throw (AllocationException) {
 }
 
 int Hook::readAccessFlags(void* artMethod) {
-     return read32((char *) artMethod + ART_METHOD.access_flags_);
+    char* pointer = (char *) artMethod + ART_METHOD.access_flags_;
+    std::atomic<std::uint32_t>* atomicFlags = (std::atomic<std::uint32_t>*)pointer;
+    return *atomicFlags;
 }
 
 void Hook::setAccessFlags(void *artMethod, int flags) {
-    memcpy((char *) artMethod + ART_METHOD.access_flags_, &flags, sizeof(flags));
+    char* pointer = (char *) artMethod + ART_METHOD.access_flags_;
+    std::atomic<std::uint32_t>* atomicFlags = (std::atomic<std::uint32_t>*)pointer;
+    *atomicFlags = (std::uint32_t)flags;
+    //memcpy((char *) artMethod + ART_METHOD.access_flags_, &flags, 4);
 }
 
 
@@ -184,4 +242,12 @@ void* Hook::genRedirectTrampoline(void* hookArtMethod, void* backupArtMethod) th
         //else {
         //return targetAddr+11;
         //}
+}
+
+void *Hook::getBackupMethod() {
+    return backupArtMethod;
+}
+
+void Hook::resetHotnessCount(void *artMethod) {
+    write16((char *) artMethod + ART_METHOD.hotness_count_, 0);
 }

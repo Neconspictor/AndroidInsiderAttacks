@@ -14,13 +14,25 @@ private:
     void* hookArtMethod;
     void* targetArtMethod;
     int nativeHookAddress;
-    void* jniTrampoline_;
+    void* hookToNativeTrampoline_;
     size_t trampolineSize;
     void* targetToHookTrampoline;
+    void* targetToBackupTrampoline;
+
+    int methodIndex;
+
+    int dex_code_item_offset_;
+    int dex_method_index_;
+    int method_index_;
+    int declaring_class_;
+
+    bool activated;
 
     int accessFlagsBackupArtBackup;
     int accessFlagsHookArtBackup;
     int accessFlagsTargetArtBackup;
+
+    static int kAccNative;
 public:
 
     Hook(void* hookArtMethod, void* backupArtMethod, void* targetArtMethod, int nativeHookAddress,
@@ -30,9 +42,13 @@ public:
 
     static void* genJniTrampoline(unsigned char* trampoline, unsigned int size) throw(AllocationException);
 
-    void activate();
+    void activate(bool activate);
 
-    void deactivate();
+    bool isActivated();
+
+    void* getBackupMethod();
+
+    void resetHotnessCount(void *artMethod);
 
 private:
     void addNativeFlag(void* artMethod);
@@ -44,6 +60,8 @@ private:
 
     int readAccessFlags(void* artMethod);
     void setAccessFlags(void* artMethod, int flags);
+
+    void removeTargetRedirection();
 };
 
 

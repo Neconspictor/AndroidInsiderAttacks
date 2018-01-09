@@ -146,7 +146,13 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_activateHooks) {
+            activateHookJNI();
+            return true;
+        }
+
+        if (id == R.id.action_deactivateHooks) {
+            deactivateHookJNI();
             return true;
         }
 
@@ -158,6 +164,10 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
+    private native void activateHookJNI();
+
+    private native void deactivateHookJNI();
 
     //*********************************************************
 //generic dialog, takes in the method name and error message

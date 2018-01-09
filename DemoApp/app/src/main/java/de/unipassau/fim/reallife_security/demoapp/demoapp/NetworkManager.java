@@ -110,6 +110,8 @@ public class NetworkManager {
 
         private Exception e;
 
+        //protected native String doInBackgroundTest(String... messages);
+
         protected String doInBackground(String... messages) {
                 String message = messages[0];
             //create a connection to the server and send the data
