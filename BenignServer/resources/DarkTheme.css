@@ -1,0 +1,68 @@
+/*{
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-fill: white;
+    -fx-text-fill: white;
+}
+
+.default{
+    -fx-background-color: black;
+}
+
+.label
+{
+    -fx-text-fill: black;
+    -fx-background-color: transparent;
+}
+
+.menu {
+    -fx-background-color: #969A9F;
+}
+
+.menu:hover  {
+    -fx-background-color: #969A9F;
+    -fx-fill: black;
+    -fx-text-fill: black;
+}
+
+.scroll-bar {
+    -fx-font-size: 18;
+}
+
+.menu-item .label {
+    -fx-background-color: transparent;
+}
+
+.menu-item:hover {
+    -fx-background-color: #969A9F;
+}*/
+
+.root {
+    -fx-base: rgba(60, 63, 65, 255); // dark
+}
+
+.scroll-bar {
+    -fx-font-size: 18;
+}
+
+.styled-text-area {
+    /*-fx-background-color: rgba(60, 63, 65, 255); // dark*/
+    -fx-background-color: transparent; /*just inherit from root*/
+    -fx-highlight-text-fill: white;
+    -fx-font-size: 1.3em;
+    -fx-display-caret: false;
+}
+
+.styled-text-area .text {
+    -fx-fill: white;
+}
+
+.menu .text, .menu-item .text, .menu-item .label, .menu-button .label {
+    -fx-fill: lightgoldenrodyellow; /*lightskyblue , lightgoldenrodyellow*/
+    -fx-text-fill: lightgoldenrodyellow;
+    -fx-background-color: transparent; /*just inherit from root*/
+}
+
+.menu {
+    -fx-selection-bar: linear-gradient(#020b02, #3a3a3a);
+}

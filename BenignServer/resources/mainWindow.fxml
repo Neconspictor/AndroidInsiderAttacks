@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.fxmisc.flowless.VirtualizedScrollPane?>
+<?import org.fxmisc.richtext.InlineCssTextArea?>
+
+<BorderPane fx:id="borderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" stylesheets="@/DarkTheme.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.unipassau.fim.reallife_security.bengin_server.controller.MainWindowController">
+    <center>
+        <VirtualizedScrollPane fx:id="scrollPane">
+            <content>
+                <InlineCssTextArea fx:id="textView" editable="false" wrapText="true">
+                    <padding>
+                        <Insets bottom="0.0" left="5.0" right="0.0" top="5.0" />
+                    </padding>
+                </InlineCssTextArea>
+            </content>
+        </VirtualizedScrollPane>
+    </center>
+   <top>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+              <MenuBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="default">
+                  <menus>
+                      <Menu fx:id="menuSettings" mnemonicParsing="false" styleClass="menu-custom" text="Settings">
+                          <items>
+                              <MenuItem mnemonicParsing="false" onAction="#handleConfigureOnAction" styleClass="menu-custom" text="Configure Server" />
+                          </items>
+                      </Menu>
+                  </menus>
+              </MenuBar>
+         </children>
+      </VBox>
+   </top>
+</BorderPane>

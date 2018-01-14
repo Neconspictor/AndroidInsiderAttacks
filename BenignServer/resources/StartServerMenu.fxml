@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@/DarkTheme.css" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.unipassau.fim.reallife_security.bengin_server.controller.StartServerMenuController">
+   <top>
+      <Pane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="38.0" BorderPane.alignment="CENTER" />
+   </top>
+   <center>
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="TOP_LEFT">
+         <children>
+            <HBox>
+               <children>
+                  <TextField fx:id="selectedPrivateKeystore" disable="false" editable="true" />
+                  <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" prefHeight="0.0" prefWidth="21.0" scaleShape="false" visible="false" />
+                  <Button mnemonicParsing="false" onAction="#selectPrivateKeystore" text="Select (Private) Key Store">
+                     <HBox.margin>
+                        <Insets right="5.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+            <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" opacity="0.0" orientation="VERTICAL" prefHeight="13.0" scaleShape="false" visible="false" />
+            <HBox>
+               <children>
+                  <PasswordField fx:id="passwordField" promptText="password..." />
+                  <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" prefHeight="0.0" prefWidth="23.0" scaleShape="false" visible="false" />
+                  <Label text="Password" />
+               </children>
+            </HBox>
+            <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" opacity="0.0" orientation="VERTICAL" prefHeight="13.0" scaleShape="false" visible="false" />
+            <HBox>
+               <children>
+                  <TextField fx:id="portTextField"/>
+                  <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" prefHeight="0.0" prefWidth="23.0" scaleShape="false" visible="false" />
+                  <Label text="port" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </center>
+   <left>
+      <Separator cacheShape="false" centerShape="false" disable="true" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity" opacity="0.0" prefWidth="38.0" scaleShape="false" visible="false" BorderPane.alignment="CENTER" />
+   </left>
+   <bottom>
+      <HBox maxHeight="-Infinity" maxWidth="-Infinity" BorderPane.alignment="BOTTOM_RIGHT">
+         <children>
+            <Button maxHeight="-Infinity" maxWidth="-Infinity" mnemonicParsing="false" onAction="#startServer" text="Start Server">
+               <HBox.margin>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+      </HBox>
+   </bottom>
+</BorderPane>
