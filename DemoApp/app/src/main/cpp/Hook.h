@@ -14,23 +14,11 @@ private:
     void* hookArtMethod;
     void* targetArtMethod;
     int nativeHookAddress;
-    void* hookToNativeTrampoline_;
-    size_t trampolineSize;
-    void* targetToHookTrampoline;
-    void* targetToBackupTrampoline;
-
-    int methodIndex;
-
-    int dex_code_item_offset_;
-    int dex_method_index_;
-    int method_index_;
-    int declaring_class_;
+    void* hookToNativePatchCode;
+    size_t patchCodeSize;
+    void* targetToHookPatchCode;
 
     bool activated;
-
-    int accessFlagsBackupArtBackup;
-    int accessFlagsHookArtBackup;
-    int accessFlagsTargetArtBackup;
 
     static int kAccNative;
 public:
@@ -56,12 +44,10 @@ private:
     void directTargetToHookMethod();
 
     static void* generateExecutableCode(size_t size) throw (AllocationException);
-    static void* genRedirectTrampoline(void* hookArtMethod, void* backupArtMethod) throw(AllocationException);
+    static void* genRedirectPatchCode(void *hookArtMethod, void *backupArtMethod) throw(AllocationException);
 
     int readAccessFlags(void* artMethod);
     void setAccessFlags(void* artMethod, int flags);
-
-    void removeTargetRedirection();
 };
 
 

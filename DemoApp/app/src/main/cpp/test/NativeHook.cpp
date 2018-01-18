@@ -212,7 +212,7 @@ NativeHook::NativeHook(void* redirectArtMethod, void* targetArtMethod, void* bac
    // addNativeFlag(this->backupArtMethod);
 
 
-    //backupRedirectToBackupTrampoline = genRedirectTrampoline(this->backupArtMethod, this->backupArtMethod);
+    //backupRedirectToBackupTrampoline = genRedirectPatchCode(this->backupArtMethod, this->backupArtMethod);
 
     //directTargetToNative();
 
