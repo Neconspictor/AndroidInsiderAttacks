@@ -110,7 +110,7 @@ public class StartServerMenuController implements Initializable {
 
     logger.debug("Chosen private key store: " + privateKeyStore);
     logger.debug("Private key store exists: " + privateKeyStore.exists());
-    logger.debug("Password: " + password);
+    //logger.debug("Password: " + password);
     logger.debug("Port: " + port);
 
     model.setFactory(router -> {

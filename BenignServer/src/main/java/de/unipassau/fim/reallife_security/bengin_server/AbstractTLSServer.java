@@ -2,6 +2,7 @@ package de.unipassau.fim.reallife_security.bengin_server;
 
 import de.unipassau.fim.reallife_security.exception.FactoryException;
 import de.unipassau.fim.reallife_security.exception.InitException;
+import org.apache.log4j.Logger;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.*;
@@ -16,6 +17,8 @@ import java.security.cert.CertificateException;
  * Created by David Goeth on 11.01.2018.
  */
 public abstract class AbstractTLSServer extends AbstractServer {
+
+  private static Logger logger = Logger.getLogger(AbstractTLSServer.class);
 
   protected String keyStoreFileName;
   protected String password;
@@ -84,6 +87,7 @@ public abstract class AbstractTLSServer extends AbstractServer {
     //sslContext.init(kmf.getKeyManagers(), null, null);
     //sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
     sslContext.init(kmf.getKeyManagers(), null, null);
+
     SSLContext.setDefault(sslContext);
 
     return sslContext.getServerSocketFactory();

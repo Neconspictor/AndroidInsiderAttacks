@@ -11,6 +11,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -73,6 +74,7 @@ public class Main extends Application {
 
     startServerController = fxmlLoader.getController();
     startServerController.init(stage, model);
+    File file;
 
     return stage;
   }

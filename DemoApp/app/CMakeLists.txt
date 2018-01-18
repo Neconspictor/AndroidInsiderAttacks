@@ -10,7 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11")
 set(
     APP_SOURCES
 
-    src/main/cpp/native-lib.cpp
+    src/main/cpp/main.cpp
     src/main/cpp/Connection.cpp
     src/main/cpp/Exceptions.cpp
     src/main/cpp/File.cpp
@@ -19,6 +19,7 @@ set(
     src/main/cpp/Util.cpp
     src/main/cpp/Service.cpp
     src/main/cpp/Hook.cpp
+    src/main/cpp/test/NativeHook.cpp
 )
 
 #assign_source_group(${APP_SOURCES})
@@ -30,7 +31,7 @@ set(
 
 
 add_library( # Sets the name of the library.
-             native-lib
+             evil-lib
 
              # Sets the library as a shared library.
              SHARED
@@ -59,7 +60,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       native-lib
+                       evil-lib
 
                        # Links the target library to the log library
                        # included in the NDK.

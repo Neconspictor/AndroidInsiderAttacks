@@ -12,7 +12,7 @@ import dalvik.system.DexClassLoader;
 import dalvik.system.PathClassLoader;
 
 /**
- * Created by Neconspictor on 30.12.2017.
+ * Created by David Goeth on 30.12.2017.
  */
 
 public class Test {

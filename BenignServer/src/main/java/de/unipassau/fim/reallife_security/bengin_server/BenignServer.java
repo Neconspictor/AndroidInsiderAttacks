@@ -6,6 +6,8 @@ import de.unipassau.fim.reallife_security.message.MessageRouter;
 import de.unipassau.fim.reallife_security.message.StringMessage;
 import org.apache.log4j.Logger;
 
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.Socket;
 
@@ -30,6 +32,15 @@ public class BenignServer extends AbstractTLSServer {
 
   @Override
   public void handleSocket(Socket socket) {
+
+    if (socket instanceof SSLSocket) {
+
+      logger.debug("SSL is used");
+      SSLSocket ssl = (SSLSocket) socket;
+      SSLSession session = ssl.getSession();
+      logger.info("SSL Protocol: " + session.getProtocol());
+      logger.info("SSL Cipher Suite: " + session.getCipherSuite());
+    }
 
     if (socket == null) throw new NullPointerException("socket is null!");
 

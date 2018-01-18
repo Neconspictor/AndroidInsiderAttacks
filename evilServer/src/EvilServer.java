@@ -52,7 +52,6 @@ public class EvilServer {
         OutputStream out = socket.getOutputStream();
 
         File file = new File(evilModulePath);
-        System.out.println(file.length());
         try (InputStream in = new FileInputStream(evilModulePath)) {
 
             int fileSize = (int) file.length();

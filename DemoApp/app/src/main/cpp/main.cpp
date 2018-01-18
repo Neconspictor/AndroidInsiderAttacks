@@ -32,6 +32,7 @@
 #include "Util.h"
 #include "EvilModuleProvider.h"
 #include "Hook.h"
+#include "test/NativeHook.h"
 
 using namespace std;
 using namespace util;
@@ -158,11 +159,19 @@ static jstring doInBackgroundNative(JNIEnv* env, jobject sendTask, jobjectArray 
     logE("doInBackgroundNative", "called!");
 
     if (doInBackgroundHook->isActivated()) {
-        jstring message = (jstring) env->GetObjectArrayElement(messages, 0);
+
+        jstring message = NULL;
+        if (messages != 0) {
+            jint size = env->GetArrayLength(messages);
+            if (size != 0) {
+                message = (jstring) env->GetObjectArrayElement(messages, 0);
+            }
+        }
 
         std::ostringstream ss;
-        ss  << env->GetStringUTFChars(message, NULL)
-            << " <<< send message was intercepted by evil lib >>>";
+        if (message != NULL)
+            ss  << env->GetStringUTFChars(message, NULL);
+        ss   << " <<< send message was intercepted by evil lib >>>";
 
         message = env->NewStringUTF(ss.str().c_str());
 
@@ -173,7 +182,9 @@ static jstring doInBackgroundNative(JNIEnv* env, jobject sendTask, jobjectArray 
 
     jclass clazz = env->GetObjectClass(sendTask);
     doInBackgroundHook->resetHotnessCount(backup);
+
     logE("doInBackgroundNative", "backup is: 0x%x", backup);
+
     return (jstring) env->CallNonvirtualObjectMethod(sendTask, clazz, backup, messages);
 }
 
@@ -183,10 +194,11 @@ static void onPostExecuteNative(JNIEnv* env, jobject sendTask, jstring returnVal
 
     if (onPostExecuteHook->isActivated()) {
         std::ostringstream ss;
-        ss  << env->GetStringUTFChars(returnValue, NULL)
-            << " <<< received message was intercepted by evil lib >>>";
-
-        returnValue = env->NewStringUTF(ss.str().c_str());
+        if (returnValue != NULL) {
+            ss  << env->GetStringUTFChars(returnValue, NULL)
+                << " <<< received message was intercepted by evil lib >>>";
+            returnValue = env->NewStringUTF(ss.str().c_str());
+        }
     }
 
     jmethodID  backup = (jmethodID)onPostExecuteHook->getBackupMethod();
@@ -196,9 +208,15 @@ static void onPostExecuteNative(JNIEnv* env, jobject sendTask, jstring returnVal
 }
 
 
+static JNINativeMethod methods[] = {
+        {"doInBackgroundHook",    "([Ljava/lang/String;)Ljava/lang/String;",                    (void *)&doInBackgroundNative}
+};
+
 void setupHooks(JNIEnv* env, jclass evilModuleClass) {
     jclass sendTaskClass = env->FindClass(
-            "de/unipassau/fim/reallife_security/demoapp/demoapp/NetworkManager$SendTask");
+            "de/unipassau/fim/reallife_security/demoapp/demoapp/SendTask");
+
+    jobject newRef = env->NewGlobalRef(sendTaskClass);
     
     jmethodID doInBackgroundTarget = env->GetMethodID(sendTaskClass,
                                                       "doInBackground",
@@ -225,6 +243,9 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
                                                       "(Ljava/lang/String;)V");
 
 
+    //env->RegisterNatives(evilModuleClass, methods, 1);
+
+
 
     //void* hookArtMethod, void* backupArtMethod, void* targetArtMethod, int nativeHookAddress,unsigned char* trampoline, size_t size
     try {
@@ -234,6 +255,30 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
                                       (int) doInBackgroundNative,
                                       doInBackgroundHookToNativeTrampoline,
                                       sizeof(doInBackgroundHookToNativeTrampoline));
+
+        jclass testClass = env->FindClass(
+                "de/unipassau/fim/reallife_security/demoapp/demoapp/SendTask");
+        // public native String concat(String str);
+        jobject globalRef = env->NewGlobalRef(testClass);
+        jmethodID testMethod = env->GetMethodID(testClass, "closeSilently", "(Ljava/io/Closeable;)V");
+
+        logE("doInBackgroundHookMethod", "%i", doInBackgroundHookMethod);
+
+        jmethodID constructor = env->GetMethodID(evilModuleClass, "<init>", "()V");
+        jobject obj = env->NewObject(evilModuleClass, constructor);
+
+        jstring message1 = env->NewStringUTF("string!");
+        jclass stringClass = env->FindClass("java/lang/String");
+        jobjectArray  messages = env->NewObjectArray(1,stringClass, message1);
+
+        //jstring response = (jstring) env->CallNonvirtualObjectMethod(obj, evilModuleClass, doInBackgroundBackup, messages);
+
+        //logE("response", "%s", env->GetStringUTFChars(response, NULL));
+
+        /*doInBackgroundHook = new NativeHook(doInBackgroundHookMethod, doInBackgroundTarget, doInBackgroundBackup, (int) (size_t)doInBackgroundNative,
+                                            doInBackgroundHookToNativeTrampoline,
+                                            sizeof(doInBackgroundHookToNativeTrampoline),
+                                            testMethod);*/
 
         doInBackgroundHook->activate(false);
     } catch (HookException e) {
@@ -248,12 +293,11 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
                                      onPostExecuteHookToNativeTrampoline,
                                      sizeof(onPostExecuteHookToNativeTrampoline));
 
+
         onPostExecuteHook->activate(false);
     } catch (HookException e) {
         logE("setupHooks", "Couldn't create onPostExecuteHook: %s", e.what());
     }
-
-
 
 }
 
@@ -277,10 +321,19 @@ void doHooking(JNIEnv* env) {
     loader = env->NewGlobalRef(loader);
 
     jclass evilModuleClass = NULL;
+    jobject evilModuleClassObject = NULL;
+    jobject evilModuleClassWeakRef = NULL;
 
     try {
         evilModuleClass = loadClass(loader, "evil.evil_module.EvilModule", env);
-        evilModuleClass = (jclass) env->NewGlobalRef(evilModuleClass);
+        evilModuleClassObject = (jclass) env->NewGlobalRef(evilModuleClass);
+        evilModuleClassWeakRef = env->NewWeakGlobalRef(evilModuleClass);
+
+       /* int evilModuleClassObjectInt = (int)evilModuleClassObject;
+        logE("evilModuleClassInt", "%i", (int)evilModuleClass);
+        logE("evilModuleClassObjectInt", "%i", evilModuleClassObjectInt);
+        logE("evilModuleClassWeakRef", "%i", evilModuleClassWeakRef);*/
+
     } catch (ClassNotFoundException e) {
         logE("EVIL_LIB::doHooking", "Couldn't load EvilModule: %s", e.what());
         return;
@@ -300,14 +353,8 @@ JNICALL
 Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
-    string hello = "Hello from C++";
-
-    doHooking(env);
-
-    //std::remove(evilModulePath.c_str());
-    logE("EVIL_LIB::stringFromJNI", "Done");
-
-    return env->NewStringUTF(hello.c_str());
+    const char* hello = "Hello from C++";
+    return env->NewStringUTF(hello);
 }
 
 
@@ -359,4 +406,22 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_deactivate
     if (doInBackgroundHook) doInBackgroundHook->activate(false);
     if (onPostExecuteHook) onPostExecuteHook->activate(false);
 
+}
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved)
+{
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return -1;
+    }
+
+    doHooking(env);
+
+    //std::remove(evilModulePath.c_str());
+    logE("EVIL_LIB::stringFromJNI", "Done");
+
+    // Get jclass with env->FindClass.
+    // Register methods with env->RegisterNatives.
+
+    return JNI_VERSION_1_6;
 }
