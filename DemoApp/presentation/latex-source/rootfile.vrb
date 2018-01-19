@@ -1,0 +1,12 @@
+\frametitle{Function Hooking (Art)}\framesubtitle {Part 6}
+
+\begin{figure}[H]
+	\begin{center}
+	\hspace*{-1cm}
+		\includegraphics[scale=0.75]{figures/HookProcess.png}
+	\end{center}
+	\caption{Hooking an Art method}
+	\label{HookEndResult}
+\end{figure}
+
+

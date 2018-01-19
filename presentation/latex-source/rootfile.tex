@@ -1,0 +1,117 @@
+\documentclass{beamer}
+\usepackage{pgf, pgffor}
+\usepackage{bibentry}
+\usepackage{textcomp}
+\usepackage{graphicx} 
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{color}
+\usetheme{Madrid}
+\usepackage{lstlinebgrd} % see http://www.ctan.org/pkg/lstaddons
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codeDarkGreen}{rgb}{0,0.3,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CppCodeStyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,    
+	morekeywords={JNIEnv, jobject, jstring, jmethodID, jclass, jthrowable},        
+	% keywords with a different color    
+    classoffset=1, % starting new class
+    morekeywords={JNIEXPORT, JNICALL},
+    keywordstyle=\color{codeDarkGreen},
+    classoffset=0, % reset class
+}
+
+\lstdefinestyle{JavaCodeStyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+}
+
+
+
+%\usetheme{Madrid}[rounded][shadow=false]
+
+\title{Android Insider Attacks} 
+\author{David Goeth} 
+\institute[]{University of Passau \newline 
+Advanced seminar: Real Life Security \newline
+WS 2017/2018}
+\date{January 19, 2018} 
+
+
+\begin{document}
+
+%\setbeamertemplate{Madrid}[rounded][shadow=true]
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+%\maketitle
+
+%\begin{frame}{}
+%\begin{block}{}
+%	From the "Call for Papers" Presentation Slides\footnotemark
+%\end{block}
+%   \begin{itemize}
+%   	\item Android apps can include shared libraries with native code
+   	%\item Shared libraries executed alongside byte code in the same address space
+   	%\item What if the native library is not trusted? 
+%   	\item Develop scenario for vulnerable (Java-bytecode) app
+%   	\item Write malicious sample library demonstrating attacks
+%   	\item Analyze the underlying reasons making these attacks possible
+%   \end{itemize}
+   
+   % This statement requires citation \cite{AndroidNdkIntro}
+   
+%   \footnotetext{GeneralInfo\_Deadlines.pdf, slide 9:\newline
+%   \url{https://studip.uni-passau.de/studip/sendfile.php?type=0&file%\_id=12ff93b0f8a63b7c21889a9ddd7971bf&file_name=GeneralInfo\_Deadlines.pdf}}
+%\end{frame}
+
+
+\begin{frame}{Overview}
+\tableofcontents
+\end{frame}
+
+\input{content}
+
+\begin{frame}[allowframebreaks]{References}
+    %\bibliographystyle{ieeetr}
+    \bibliographystyle{amsalpha}
+    \bibliography{bib}
+    %\addcontentsline{toc}{frame}{\bibname}
+\end{frame}
+\end{document}
