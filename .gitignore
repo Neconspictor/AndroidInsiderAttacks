@@ -13,3 +13,4 @@
 /.*/decompileOAT/*.dex
 /.*/decompileOAT/*.class
 *.apk
+*.iws
