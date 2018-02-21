@@ -66,9 +66,51 @@ An actually well-intentioned C code could lead through memory safety vulnerabili
 In this section we look at some background knowledge that is necessary to understand for the attack scenario that we will present in the next section.
 %In this section we want to examine how an attacker could manage it so that malicious (native) code gets executed. Of course the bandwidth of possible attacks is much too large, so we want pick out some interesting attacks shining out. 
  
+\subsection{Java Native Interface}
 
-%In a survey of Google Play, 86\% of the top 50 apps shipped 
+Loading a native library from Java can be accomplished by:
+\begin{lstlisting}[language=Java, style=JavaCodeStyle]
+ System.loadLibrary("libName");
+\end{lstlisting}
+Where \emph{libName} is the name of the native library without file extension since the file extension is platform dependent.
 
+The declaration of a native method is done in Java as well. It resembles the declaration of an interface method, but uses the 'native' keyword:
+\begin{lstlisting}[language=Java, style=JavaCodeStyle]
+package com.example;
+public class Native {
+  public native String fromNative();
+}
+\end{lstlisting}
+
+The definition of  a native method is done using native code (here C++). This example defines a native method, that returns a \emph{java.lang.String} class object.
+\begin{lstlisting}[language=C++, style=CppCodeStyle]
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_example_fromNative(JNIEnv *env,jobject /* this */) {
+    const char* msg = "Hello from C++";
+    return env->NewStringUTF(msg);
+}
+\end{lstlisting}
+
+Over the JNIEnv variable \emph{env}, the C programer can access the methods of the JNI interface. The JNIEnv variable is created by the JVM. Before the native function is called, a pointer to the JNIEnv variable is pushed on the callstack as the first parameter. The second argument of type jobject is a pointer to the java object the native method is called from. For static native methods, a pointer to the class the native method belongs to, is pushed instead. 
+
+\subsection{Android Runtime (ART)}
+In Android, currently there exist two Virtual machines: The older solely JIT-compiling Dalvik and the newer one: ART. ART introduced Ahead-of-time compilation (AOT) in Android \cite{ArtAndDalvik}. AOT precompiles the majority of the java code on install time, which speeds up program starts of apps. ART replaced Dalvik in Android 5.0 (Lollipop) \footnote{\url{https://developer.android.com/about/versions/android-5.0-changes.html}}. For that reason, we will design our attack scenario exploiting ART internals, as Dalvik isn't used anymore in newer Android versions. But it should be noted, that a similar attack would be possible for the Dalvik runtime.
+
+In Android 7.0 (Nougat) a JIT Compiler was again reintroduced that works along with the AOT compiler \cite{Android7ForDevelopers}. The reason for this were to improve runtime performance, saving storage space and speeding up application and system updates \cite{JitWorkFlow}.
+
+On a simplified view, the new JIT-Compiler basically works like follows:  
+
+
+    \begin{itemize}
+    	\item Only 'hot' methods are compiled Ahead-of-time 
+    	\item A method is 'hot' if it is called often.
+    	\item On install time an analyzing process decides which methods are likely to be 'hot'.
+    	\item On runtime, the Analyzer checks regularly if a method is 'hot'
+    	\item If a method gets 'hot', it will be compiled by the AOT compiler
+    	\item Native methods are not interpreted, they never will get hot \newline
+    	\textcolor{red}{TODO: Proceed here!}
+    	$\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
+    \end{itemize}
 
 
 \section{Attack Scenario}
@@ -102,8 +144,6 @@ With the method id we can leverage some runtime information to get access to the
 
 
 \subsection{Implementation}
-
-In Android, currently there exist two Virtual machines: The older solely JIT-compiling Dalvik and the newer one ART. ART introduced Ahead-of-time compilation in Android \cite{ArtAndDalvik}. On install time, the majority of the code is precompiled, which speeds up program starts of apps. We will use for this paper only ART, as Dalvik isn't used anymore in newer Android versions.
 
 As we will need to write some assembly in machine code in this scenario we will 
 constrain ourselves to one specific Android version and one specific machine instruction set. As the instruction set we  chose \emph{i386 (x86)} and 

@@ -2,6 +2,59 @@
 
 \usepackage{booktabs} % For formal tables
 
+\usepackage{lstlinebgrd} % see http://www.ctan.org/pkg/lstaddons
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codeDarkGreen}{rgb}{0,0.3,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CppCodeStyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,    
+	morekeywords={JNIEnv, jobject, jstring, jmethodID, jclass, jthrowable},        
+	% keywords with a different color    
+    classoffset=1, % starting new class
+    morekeywords={JNIEXPORT, JNICALL},
+    keywordstyle=\color{codeDarkGreen},
+    classoffset=0, % reset class
+}
+
+\lstdefinestyle{JavaCodeStyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+}
+
 
 % Copyright
 %\setcopyright{none}
