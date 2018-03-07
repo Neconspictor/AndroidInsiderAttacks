@@ -69,13 +69,13 @@ In this section we look at some background knowledge that is necessary to unders
 \subsection{Java Native Interface}
 
 Loading a native library from Java can be accomplished by:
-\begin{lstlisting}[language=Java, style=JavaCodeStyle]
+\begin{lstlisting}[language=Java, style=JavaCodeStyle, caption=Loading a native libary]
  System.loadLibrary("libName");
 \end{lstlisting}
 Where \emph{libName} is the name of the native library without file extension since the file extension is platform dependent.
 
 The declaration of a native method is done in Java as well. It resembles the declaration of an interface method, but uses the 'native' keyword:
-\begin{lstlisting}[language=Java, style=JavaCodeStyle]
+\begin{lstlisting}[language=Java, style=JavaCodeStyle, caption= native declaration]
 package com.example;
 public class Native {
   public native String fromNative();
@@ -83,7 +83,7 @@ public class Native {
 \end{lstlisting}
 
 The definition of  a native method is done using native code (here C++). This example defines a native method, that returns a \emph{java.lang.String} class object.
-\begin{lstlisting}[language=C++, style=CppCodeStyle]
+\begin{lstlisting}[language=C++, style=CppCodeStyle, caption=Native Hello World Example]
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_fromNative(JNIEnv *env,jobject /* this */) {
     const char* msg = "Hello from C++";
@@ -107,8 +107,7 @@ On a simplified view, the new JIT-Compiler basically works like follows:
     \item On install time an analyzing process decides which methods are likely to be 'hot'.
     \item On runtime, the Analyzer checks regularly if a method is 'hot'
     \item If a method gets 'hot', it will be compiled by the AOT compiler
-    \item Native methods are not interpreted, they never will get hot \newline
-    \textcolor{red}{TODO: Proceed here!}
+    \textcolor{red}{TODO: Move to attack scenario}
     $\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
     \end{itemize}
     
@@ -123,7 +122,7 @@ In figure \ref{JitWorkflow} we see how the new JIT compilation works starting fr
 	\label{JitWorkflow}
 \end{figure}
 
-When compiling an android app, the Java source files get compiled first to *.class files as usual and then compiled to Dalivk bytecode. The resulting code is stored into a  Dalvik Executable (DEX) file and finally packed into an Android Package Kit (APK). This process is independent from the later VM the target device uses.
+When compiling an android app, the Java source files get compiled first to *.class files as usual and then compiled to Dalivk bytecode. The resulting code is stored into a  Dalvik Executable (DEX) file and finally packed into an Android Package Kit (APK). This process is independent from the VM used by the target android device.
 
 Now we assume on the target device is installed Android 7.0 or above.
 While installing the app, ART analyzes the *.dex files and optimizes the code. As a result of this optimization step, 'hot' methods get AOT compiled and stored in *.oat files, that are binary files for AOT compiled methods.
@@ -131,8 +130,63 @@ While installing the app, ART analyzes the *.dex files and optimizes the code. A
 
 When an Android app starts, the corresponding *.dex and *.oat files get loaded to memory by ART. The JIT-compiler checks upon the calling of a method, whether the method is compiled or not. If the method is compiled, it is further checked, whether the compiled method is AOT-compiled or JIT-compiled. The result of the checks determines, whether the method is run from the *.oat file or from the JIT code cache.
 
-Should the method to be executed not be a compiled method, it is going through several steps: At first it is executed by the interpreter, than a profile sample is recorded and as the last step it is checked, whether the method is 'hot'. If the method is not 'hot', its hotness counter is incremented. 
-If the method is 'hot' the method is (asynchronously) JIT compiled. 
+Should the method to be executed not be a compiled method, the method goes through several steps: At first it is executed by the interpreter, than a profile sample is recorded and as the last step it is checked, whether the method is 'hot'. If the method is not 'hot', its hotness counter is incremented. 
+If the method is 'hot' the method is (asynchronously) JIT compiled.
+
+From the JIT workflow we can note that a native function will never be 'hot' or JIT-compiled as it is considered to be compiled. That conclusion may sound trivial but it will play a central role later in the attack scenario. 
+
+\subsection{ART Internals}
+
+In this section we analyze how a java method is stored in memory and how the method is processed by ART when the method gets called by user code. As the internals of ART can change from revision to revision (so very frequently), we concentrate on Android 8.0 rev. 36, which is the release version of Android 8 (Oreo). This is also the android version our attack scenario is targeting at.
+
+When loading an app, ART creates for each java method an ArtMethod object. The ArtMethod class is used to store runtime information for each java method. For example, it is stored if the method is public, private or protected, in which class it is defined, whether it is synchronized or native, etc. . 
+In listing \ref{ArtMethodLabel} we see the definition of the ArtMethod class like it is defined in Android 8 rev. 36:
+
+\begin{lstlisting}[language=C++, style=CppCodeStyle, caption=ArtMethod and x86 offsets \cite{ArtMethodOreoRev36}, label=ArtMethodLabel,
+escapechar=!]
+class ArtMethod FINAL { 
+ protected:
+  GcRoot<mirror::Class> declaring_class_;// 0
+ !\colorbox{yellow}{std::atomic<std::uint32\_t> access\_flags\_;}! // 4
+  uint32_t dex_code_item_offset_; // 8
+  uint32_t dex_method_index_; // 12
+  uint16_t method_index_; // 16
+  !\colorbox{yellow}{uint16\_t hotness\_count\_;}! // 18
+  struct PtrSizedFields {
+    ArtMethod** dex_cache_resolved_methods_; // 20
+    !\colorbox{yellow}{void* data\_;}! // 24
+    !\colorbox{yellow}{void* entry\_point\_from\_quick\_compiled\_code\_;}! // 28
+  } ptr_sized_fields_;
+};
+\end{lstlisting}
+
+The listing contains the definition of the ArtMethod and x86 class offsets (measured in bytes). The offsets define the memory layout for the x86 architecture. For now we can just ignore the offsets since we will need them only for the attack implementation.
+
+We won't go into all details, but we discuss the yellow highlighted class members as they are a help for our attack:
+
+\begin{itemize}
+\item \textbf{access\_flags\_}: Is a bitwise flag field. Is used to specify the visibility of the method (public, protected, private), whether the method is synchronized and similar stuff. There exists also a native flag, that marks the method as native.
+\item \textbf{hotness\_count\_}: Counter for tracking how often the java method has been called. Is used to determine if a java method is 'hot'. It is not used if the java method is native.
+\item \textbf{data\_}: Is used for several purposes, but if the java method is native, it always points to the native code.
+\item \textbf{entry\_point\_from\_quick\_compiled\_code\_}: points to machine code that has to be executed before the actual java method is called. So that machine code functions as a \emph{prolog}. Independent from the type of java method, the prolog is called always.
+\end{itemize}
+
+\subsection{Function Hooking}
+Function hooking means to intercept the call of a function and redirect the execution flow to another memory address.
+For machine code, this is done by writing a jump or return instruction to the beginning of the function to be hooked. This way one can jump/redirect the execution flow to a custom code location. 
+Whenever the hooked function gets called, now the custom code (which we now call \emph{hook function}) is called.
+
+But there arises a problem now: What if we want call the original function from inside the hook function? When applying the hook, the first instruction of the hooked function get destroyed. So, one has to do somehow a backup of the original function before hooking it. This process of doing a backup and than applying a function hook, is called \emph{trampoline} hook and is coined by Microsoft's Win32 API hooking library Detour \cite{detours-binary-interception-of-win32-functions}.
+
+As java methods aren't directly laid out as machine code instruction, doing a trampoline hook on an android app, works a bit differently. There might be more ways to do it, but we will discuss the way it is done in the YAHFA Hooking Library \cite{YahfaGithub}:\\
+
+As a first step, make the java method, that should be hooked, a native method. This can be done by assigning the corresponding ArtMethod the native flag to the access\_flags\_ field. Different types of java methods (e.g. native methods, JIT-compiled or OAT compiled) are handled differently by ART. By making the method native, we don't need to differentiate between the different types of java methods.
+
+The second step is to assign the \\entry\_point\_from\_quick\_compiled\_code\_ field to a memory address where user defined code lies. In YAHFA this is dynamically created code that will redirect to another java method (the hook method). As we will perform an attack from native code, we will redirect to a prolog machine code and will let point the data\_ pointer to the native code we want execute.
+
+In order to call the original java method, before any changes are performed all class members that are going to be changed are stored in a backup. Than another java method (the so-called bakup method) is changed: The method should be a copy of the original (hooked) java method. But there is one additional thing to consider: The backup method mustn't be JIT-compiled, as otherwise the set hook will be destroyed and will lead to unknown behavior. Thus before each call of the backup method, its hotness counter has to be set to 0. The hotness counter reset can be achieved by adding it to the prolog (so the user needn't do it).
+
+%on machine instruction level. The first thing one has to do, is to make the machine code writable that lies in memory. By default, the code section is not writable on linux systems. But this can be changed by the system call \emph{mprotect} \cite{mprotect}.
 
 \section{Attack Scenario}
 In this section we will present and discuss a possible attack from native code, that leverages the power of memory insecurity in C++ to compromise an Android Java application. The content of this section is structured as follows: In Subsection \emph{\textbf{Model}} we present the theoretical concept of the attack, some design decisions and the demo application. 

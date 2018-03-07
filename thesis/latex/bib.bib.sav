@@ -256,4 +256,20 @@ Innovative systems research hinges on the ability to easily instrument and exten
   url       = {https://source.android.com/devices/tech/dalvik/dex-format},
 }
 
+@Misc{mprotect,
+  title     = {mprotect(2) - Linux man page},
+  year      = {2018},
+  note      = {Last accessed on 03/07/2018},
+  timestamp = {2018-07-03},
+  url       = {https://linux.die.net/man/2/mprotect},
+}
+
+@Misc{YahfaGithub,
+  title     = {YAHFA Github repository},
+  year      = {2018},
+  note      = {Last accessed on 03/07/2018},
+  timestamp = {2018-07-03},
+  url       = {https://github.com/rk700/YAHFA},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}
