@@ -63,7 +63,7 @@ An actually well-intentioned C code could lead through memory safety vulnerabili
 
 \section{Background}
 
-In this section we look at some background knowledge that is necessary to understand for the attack scenario that we will present in the next section.
+In this section we look at some background knowledge that is necessary to understand the attack scenario that we will present in the next section.
 %In this section we want to examine how an attacker could manage it so that malicious (native) code gets executed. Of course the bandwidth of possible attacks is much too large, so we want pick out some interesting attacks shining out. 
  
 \subsection{Java Native Interface}
@@ -101,17 +101,38 @@ In Android 7.0 (Nougat) a JIT Compiler was again reintroduced that works along w
 On a simplified view, the new JIT-Compiler basically works like follows:  
 
 
-    \begin{itemize}
-    	\item Only 'hot' methods are compiled Ahead-of-time 
-    	\item A method is 'hot' if it is called often.
-    	\item On install time an analyzing process decides which methods are likely to be 'hot'.
-    	\item On runtime, the Analyzer checks regularly if a method is 'hot'
-    	\item If a method gets 'hot', it will be compiled by the AOT compiler
-    	\item Native methods are not interpreted, they never will get hot \newline
-    	\textcolor{red}{TODO: Proceed here!}
-    	$\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
+\begin{itemize}
+    \item Only 'hot' methods are compiled Ahead-of-time 
+    \item A method is 'hot' if it is called often.
+    \item On install time an analyzing process decides which methods are likely to be 'hot'.
+    \item On runtime, the Analyzer checks regularly if a method is 'hot'
+    \item If a method gets 'hot', it will be compiled by the AOT compiler
+    \item Native methods are not interpreted, they never will get hot \newline
+    \textcolor{red}{TODO: Proceed here!}
+    $\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
     \end{itemize}
+    
+In figure \ref{JitWorkflow} we see how the new JIT compilation works starting from Android 7.0.     
+    
+\begin{figure}[H]
+	\begin{center}
+	%\vspace*{-0.1cm}
+		\includegraphics[scale=0.45]{figures/jit-workflow-extract.png}
+	\end{center}
+	\caption{Extract from the JIT Workflow on Android 7.0 and above \cite{JitWorkFlow}}
+	\label{JitWorkflow}
+\end{figure}
 
+When compiling an android app, the Java source files get compiled first to *.class files as usual and then compiled to Dalivk bytecode. The resulting code is stored into a  Dalvik Executable (DEX) file and finally packed into an Android Package Kit (APK). This process is independent from the later VM the target device uses.
+
+Now we assume on the target device is installed Android 7.0 or above.
+While installing the app, ART analyzes the *.dex files and optimizes the code. As a result of this optimization step, 'hot' methods get AOT compiled and stored in *.oat files, that are binary files for AOT compiled methods.
+
+
+When an Android app starts, the corresponding *.dex and *.oat files get loaded to memory by ART. The JIT-compiler checks upon the calling of a method, whether the method is compiled or not. If the method is compiled, it is further checked, whether the compiled method is AOT-compiled or JIT-compiled. The result of the checks determines, whether the method is run from the *.oat file or from the JIT code cache.
+
+Should the method to be executed not be a compiled method, it is going through several steps: At first it is executed by the interpreter, than a profile sample is recorded and as the last step it is checked, whether the method is 'hot'. If the method is not 'hot', its hotness counter is incremented. 
+If the method is 'hot' the method is (asynchronously) JIT compiled. 
 
 \section{Attack Scenario}
 In this section we will present and discuss a possible attack from native code, that leverages the power of memory insecurity in C++ to compromise an Android Java application. The content of this section is structured as follows: In Subsection \emph{\textbf{Model}} we present the theoretical concept of the attack, some design decisions and the demo application. 
