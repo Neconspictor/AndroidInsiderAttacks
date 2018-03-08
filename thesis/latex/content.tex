@@ -107,8 +107,8 @@ On a simplified view, the new JIT-Compiler basically works like follows:
     \item On install time an analyzing process decides which methods are likely to be 'hot'.
     \item On runtime, the Analyzer checks regularly if a method is 'hot'
     \item If a method gets 'hot', it will be compiled by the AOT compiler
-    \textcolor{red}{TODO: Move to attack scenario}
-    $\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
+    %\textcolor{red}{TODO: Move to attack scenario}
+    %$\Rightarrow$ In order to replace an existing java method, the method has to be set to native and its 'hotness' count has to be set to 0 (not 'hot')
     \end{itemize}
     
 In figure \ref{JitWorkflow} we see how the new JIT compilation works starting from Android 7.0.     
@@ -180,59 +180,89 @@ But there arises a problem now: What if we want call the original function from 
 
 As java methods aren't directly laid out as machine code instruction, doing a trampoline hook on an android app, works a bit differently. There might be more ways to do it, but we will discuss the way it is done in the YAHFA Hooking Library \cite{YahfaGithub}:\\
 
-As a first step, make the java method, that should be hooked, a native method. This can be done by assigning the corresponding ArtMethod the native flag to the access\_flags\_ field. Different types of java methods (e.g. native methods, JIT-compiled or OAT compiled) are handled differently by ART. By making the method native, we don't need to differentiate between the different types of java methods.
+As a first step, the java method, that should be hooked, is made a native method. This can be done by assigning the corresponding ArtMethod the native flag to the access\_flags\_ field. Different types of java methods (e.g. native methods, JIT-compiled or OAT compiled) are handled differently by ART. By making the method native, we don't need to differentiate between the different types of java methods.
 
-The second step is to assign the \\entry\_point\_from\_quick\_compiled\_code\_ field to a memory address where user defined code lies. In YAHFA this is dynamically created code that will redirect to another java method (the hook method). As we will perform an attack from native code, we will redirect to a prolog machine code and will let point the data\_ pointer to the native code we want execute.
+The second step is to assign the \\\emph{entry\_point\_from\_quick\_compiled\_code\_} field to a memory address where user defined code lies. In YAHFA this is dynamically created code that will redirect to another java method (the hook method). As we will perform an attack from native code, we will redirect to a prolog machine code and will let point the data\_ pointer to the native code we want execute.
 
-In order to call the original java method, before any changes are performed all class members that are going to be changed are stored in a backup. Than another java method (the so-called bakup method) is changed: The method should be a copy of the original (hooked) java method. But there is one additional thing to consider: The backup method mustn't be JIT-compiled, as otherwise the set hook will be destroyed and will lead to unknown behavior. Thus before each call of the backup method, its hotness counter has to be set to 0. The hotness counter reset can be achieved by adding it to the prolog (so the user needn't do it).
+In order to call the original java method, before any changes are performed all class members that are going to be changed are stored in a backup. 
+Therefore the original (hooked) java method is copied and its content is stored in a new java method (the so-called bakup method).
+But there are two things to consider:
+
+First, the backup method mustn't be JIT-compiled, as otherwise the set hook will be destroyed and will lead to unknown behavior. 
+We cannot set the native flag for the backup method, as if it isn't a native function, it wouldn't be handled properly.
+This problem can be fixed by reseting its hotness counter to 0. This has to be done before each call of the backup method. The hotness counter reset can be achieved by adding it to the prolog (so the user needn't do it).
+
+The second thing to consider: The backup method has to be properly registered as a java method to ART. It doesn't suffice just to do a copy of the original method. YAHFA solves this by overwriting (hooking) the ArtMethod of another java method, that is specified by the user.
 
 %on machine instruction level. The first thing one has to do, is to make the machine code writable that lies in memory. By default, the code section is not writable on linux systems. But this can be changed by the system call \emph{mprotect} \cite{mprotect}.
 
 \section{Attack Scenario}
 In this section we will present and discuss a possible attack from native code, that leverages the power of memory insecurity in C++ to compromise an Android Java application. The content of this section is structured as follows: In Subsection \emph{\textbf{Model}} we present the theoretical concept of the attack, some design decisions and the demo application. 
-In Subsection \emph{\textbf{Implementation}} we go into more implementation specific details and validate our former created attack model.
+In Subsection \emph{\textbf{Implementation}} we go into more implementation specific details. %and validate our former created attack model.
 
 \subsection{Model}
 
 In our scenario we have a benign application that uses native code.
 The reason for the use of native code are secondary. It could be used for advertising, 3D graphics acceleration, high performance computations, but for our experiment it doesn't really matter, since we use the native library primarily as the entrance point for our attack.
 
-The app connects itself to a remote server and establishes an encrypted communication channel using asymmetric cryptography.
-  
-Our goal is to act on the attacker's view: The goal is to monitor the communication between the client (benign app) and the remote server. 
-Cracking the asymmetric encryption directly isn't an option. We rather want intercept function calls that handle the sending and receiving of messages.
+In figure \ref{ModelOverview} we see an overview of our attack scenario.
+\begin{figure}[H]
+	\begin{center}
+	%\vspace*{-0.1cm}
+		\includegraphics[scale=0.45]{figures/AttackOverview.png}
+	\end{center}
+	\caption{Attack scenario Overview}
+	\label{ModelOverview}
+\end{figure}
 
-The key component for our attack scenario here is \emph{(function) hooking}.
-By changing the machine code in certain ways (e.g. jumps to another address) it is possible to change the execution flow. In this way it is possible to execute before a function is called or after it has been called. But one could also only call the new created code skipping and thus replacing the original function completely. 
 
-It is possible to copy the code of the original function and store it on a different (new) memory location. 
-Through that it is possible to execute custom code instead of the original function, but if wished the code of the original function can still be accessed (and be executed).  
+For the demo app we implemented a simple text messenger: The user can write text messages to a remote server. When the message is send, the app connects itself to a remote server and establishes an encrypted communication channel using asymmetric cryptography. The server than responds what he has received from the client.
 
-This technique of first saving the original function and than hooking the old location is called trampoline hooking and is coined by Microsoft's Win32 API hooking library Detour \cite{detours-binary-interception-of-win32-functions}.
+We now act on the attacker's view: The goal is to monitor the communication between the client (benign app) and the remote server. 
+Cracking the asymmetric encryption directly isn't a feasible option. We rather want intercept function calls that handle the sending and receiving of messages before they are encrypted resp. after they are decrypted.
 
-Using C++ we can create machine code using some assembly and converting that to bytes.
-Of course the created code has to be made executable. But this is no problem (e.g. through using the Linux functions \emph{mmap}\footnote{\url{http://man7.org/linux/man-pages/man2/mmap.2.html}} or \emph{mprotect}\footnote{\url{http://man7.org/linux/man-pages/man2/mprotect.2.html}} function)).
 
-Till now we have a foundation to modify machine code (\emph{not} Java Byte Code!). So the next step is to get the function in memory. Fortunately, here helps JNI as it allows to get a class instance with a function call of  \emph{FindClass}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#FindClass}} and \emph{GetMethodID}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#GetMethodID}} for retrieving a jmethod from a method by its name.
+The key component for our attack scenario here is \emph{function hooking}.
+From native code we get the ArtMethod objects from the send and receive java methods and redirect them to a native code function. That reads the messages and will change them. This way the user gets notified that the attack is successful. 
 
-With the method id we can leverage some runtime information to get access to the compiled machine code. If this is achieved we can change and thus intercept any function from the target app, we like.
+As the native hook functions want call the original functions, we need to do backups. We follow here the way of the YAHFA library and use other java methods to store the original method content. These backup java methods get loaded at runtime: At first, a dex file containing the methods is downloaded from a second (evil) server. And then the dex file are loaded by using the DexClassLoader \footnote{\url{https://developer.android.com/reference/dalvik/system/DexClassLoader.html}}
+class.
+
+%Using C++ we can create machine code using some assembly and converting that to bytes.
+%Of course the created code has to be made executable. But this is no problem (e.g. through using the Linux functions \emph{mmap}\footnote{\url{http://man7.org/linux/man-pages/man2/mmap.2.html}} or \emph{mprotect}\footnote{\url{http://man7.org/linux/man-pages/man2/mprotect.2.html}} function)).
+
+%Till now we have a foundation to modify machine code (\emph{not} Java Byte Code!). So the next step is to get the function in memory. Fortunately, here helps JNI as it allows to get a class instance with a function call of  \emph{FindClass}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#FindClass}} and \emph{GetMethodID}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#GetMethodID}} for retrieving a jmethod from a method by its name.
+
+%With the method id we can leverage some runtime information to get access to the compiled machine code. If this is achieved we can change and thus intercept any function from the target app, we like.
+
 
 
 \subsection{Implementation}
 
-As we will need to write some assembly in machine code in this scenario we will 
-constrain ourselves to one specific Android version and one specific machine instruction set. As the instruction set we  chose \emph{i386 (x86)} and 
+The memory layout of an ArtMethod is dependent from the specific Android version and the used machine architecture. We also had to write machine code to reset the hotness counter for the backup method. Therefore we constrained ourselves to a specific Android version and one specific machine instruction set. As the instruction set we  chose \emph{i386 (x86)} and 
 we chose \emph{Android 8.0 (Oreo)} as the target platform.
+Though \emph{arm} is oftener used than \emph{i386}, we preferred \emph{i386} as for the relative new \emph{Android 8.0 (Oreo)} there weren't any hardware accelerated Android Virtual Device (hAVD) images available for \emph{arm}. using a hAVD facilitates app development considerable as they perform much faster. 
 
-Until now only a proof of concept implementation is done that is rather rudimentary. 
-Besides feature completion the final implementation will be furnished with a nice logging Activity and fully documented source code. 
+But it should be mentioned that the attack could also be done for other machine instruction sets and other Android versions, that are using ART (so since Android 5.0). The android version can be examined by the global java constant \emph{android.os.Build.VERSION.SDK\_INT} with JNI.
+The differences for the machine instruction set and architecture can be solved on compile time of the native library: In Android Studio the library is compiled for each supported instruction set and architecture. ART loads then at runtime the appropriate library.
 
-The code could be implemented entirely in C++, but it would be (unnecessarily) labor intensive as one has to have deep knowledge of the internals of ART. But it would also be very fragile, since the internals of ART would have to be re-implemented. The behavior is therefore not only dependent from  the machine instruction set, but also from the concrete implementation of interfaces and private functions, that could change from commit to commit.
-This are the reasons to favor a not entirely in C++ code written attack, but instead also use Java code, that cooperates with the native code.
+To encrypt the communication, we used the TLSv1.2 protocol. 
 
-But there are also some disadvantages of loading additional Java code at runtime: Read and Write Permission for external Storage in the Android app manifest. 
+In order to access the ArtMethod objects of a java method we used JNI as it allows to get a class instance with a function call of  \emph{FindClass}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#FindClass}} and \emph{GetMethodID}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#GetMethodID}} for retrieving a \emph{jmethod} from a method by its name. The \emph{jmethod} is actually defined as an empty struct. But it is a placeholder type for not revealing JVM internals to user code. And in fact, the returned \emph{jmethod} object is actually a pointer to an ArtMethod object. At least, this applies for the android platform.
 
- To avoid this, an attacker could compile a function to native code and than extract the compiled malicious code and integrate it in the source code as a char array. Then the attacker just needs to make the code executable (e.g. using the \textit{mprotect}. This executable code can then act as replacement hook for any function that has the same method signature (arguments and return value).
- This way, an attacker could entirely use native code for the attack and he/she further needs no additional permissions.
+%Until now only a proof of concept implementation is done that is rather rudimentary. 
+%Besides feature completion the final implementation will be furnished with a nice logging Activity and fully documented source code. 
+
+%The code could be implemented entirely in C++, but it would be (unnecessarily) labor intensive as one has to have deep knowledge of the internals of ART. But it would also be very fragile, since the internals of ART would have to be re-implemented. The behavior is therefore not only dependent from  the machine instruction set, but also from the concrete implementation of interfaces and private functions, that could change from commit to commit.
+%This are the reasons to favor a not entirely in C++ code written attack, but instead also use Java code, that cooperates with the native code.
+
+%But there are also some disadvantages of loading additional Java code at runtime: Read and Write Permission for external Storage in the Android app manifest. 
+
+ %To avoid this, an attacker could compile a function to native code and than extract the compiled malicious code and integrate it in the source code as a char array. Then the attacker just needs to make the code executable (e.g. using the \textit{mprotect}. This executable code can then act as replacement hook for any function that has the same method signature (arguments and return value).
+% This way, an attacker could entirely use native code for the attack and he/she further needs no additional permissions.
 %\subsection{Evaluation}
 \section{Conclusion}
+
+In this paper we have shown how JNI could be abused when untrusted native code is loaded by a java android app. Additionally we have shown how traditional function hooking can be translated to the ART environment. We used trampoline hooks to intercept messages that were send or received by the benign app.
+
+For the attack the benign app has to have internet permission \footnote{\url{https://developer.android.com/reference/android/Manifest.permission.html\#INTERNET}}. For our demo app this is no problem, as the benign app itself access the internet. But the files that are downloaded from the evil server could also be stored as a char array inside the evil library. So the presented attack actually needs no special permissions.
