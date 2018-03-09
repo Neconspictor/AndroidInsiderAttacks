@@ -62,8 +62,8 @@ unsigned char resetHotnessCountCode[] = {
 //https://android.googlesource.com/platform/art/+/oreo-release/runtime/modifiers.h
 int Hook::kAccNative = 0x0100;
 
-Hook::Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress,
-unsigned char* trampoline, size_t size) throw(HookException) : helperToNativePatchCode(NULL),
+Hook::Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress)
+throw(HookException) : helperToNativePatchCode(NULL),
                                                                targetToHookHelperPatchCode(NULL){
 
     this->nativeHookHelperArtMethod = nativeHookHelperArtMethod;
@@ -71,29 +71,7 @@ unsigned char* trampoline, size_t size) throw(HookException) : helperToNativePat
     this->targetArtMethod = targetArtMethod;
     this->nativeHookAddress = nativeHookAddress;
 
-    patchCodeSize = size;
-
-    try {
-        helperToNativePatchCode = genJniTrampoline(trampoline, patchCodeSize);
-    }catch (AllocationException e) {
-        std::string msg("Couldn't generate jni trampoline: ");
-        msg.append(e.what());
-        throw HookException(msg);
-    }
-
     targetToHookHelperPatchCode = genRedirectPatchCode(nativeHookHelperArtMethod, backupArtMethod);
-
-   /* // update the cached method manually
-    // first we find the array of cached methods
-    void *dexCacheResolvedMethods = (void *) read32(
-            (void *) ((char *) this->nativeHookHelperArtMethod + ART_METHOD.dex_cache_resolved_methods_));
-    // then we get the dex method index of the static backup method
-    int methodIndex = read32((void *) ((char *) this->backupArtMethod + ART_METHOD.dex_method_index_));
-    // finally the addr of backup method is put at the corresponding location in cached methods array
-    memcpy((char *) dexCacheResolvedMethods  + 4 * methodIndex,
-           (&this->backupArtMethod),
-           4);
-*/
 
     // copy the target art-method to the backup art-method location.
     // the backup art-method needn't be restored later. So this should be safe.
@@ -116,14 +94,6 @@ bool Hook::isActivated() {
     return activated;
 }
 
-
-void* Hook::genJniTrampoline(unsigned char* trampoline, unsigned int size) throw(AllocationException) {
-    logE("EVIL_LIB::HOOK", "trampoline size: %i", size);
-    void* buf = generateExecutableCode(size);
-    memcpy(buf, trampoline, size);
-    return buf;
-}
-
 void Hook::addNativeFlag(void *artMethod) {
     int access_flags = readAccessFlags(artMethod);
     logE("EVIL_LIB::HOOK", "access flags is 0x%x", access_flags);
@@ -138,19 +108,12 @@ void Hook::directHookToNativeFunction() {
     // set the hook method to native so that Android O wouldn't invoke it with interpreter
     addNativeFlag(nativeHookHelperArtMethod);
 
-    // The entry point for native methods is at entry_point_from_quick_compiled_code_
-    //Thus set entry_point_from_quick_compiled_code_ pointing to the jni trampoline
-   // memcpy((char *) nativeHookHelperArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
-   //        &this->helperToNativePatchCode, 4);
-
     //The Jni trampoline will call native code at the data_ pointer. So let us point the data_ pointer
     // to the native hook function.
     memcpy((char *) nativeHookHelperArtMethod + ART_METHOD.data_, (char *) &nativeHookAddress, sizeof(ADDRESS_POINTER));
 }
 
 void Hook::directTargetToHookMethod() {
-
-   // memcpy((char *) targetArtMethod + ART_METHOD.data_, (char *) &nativeHookAddress, 4);
 
     memcpy((char *) targetArtMethod + ART_METHOD.entry_point_from_quick_compiled_code_,
            &this->targetToHookHelperPatchCode, sizeof(ADDRESS_POINTER));
@@ -181,7 +144,6 @@ void Hook::setAccessFlags(void *artMethod, int flags) {
     char* pointer = (char *) artMethod + ART_METHOD.access_flags_;
     std::atomic<std::uint32_t>* atomicFlags = (std::atomic<std::uint32_t>*)pointer;
     *atomicFlags = (std::uint32_t)flags;
-    //memcpy((char *) artMethod + ART_METHOD.access_flags_, &flags, 4);
 }
 
 
@@ -200,10 +162,6 @@ void* Hook::genRedirectPatchCode(void *hookArtMethod, void *backupArtMethod) thr
 
 void *Hook::getBackupMethod() {
     return backupArtMethod;
-}
-
-void Hook::resetHotnessCount(void *artMethod) {
-    write16((char *) artMethod + ART_METHOD.hotness_count_, 0);
 }
 
 void Hook::setupBackupHotnessResetPatch() {

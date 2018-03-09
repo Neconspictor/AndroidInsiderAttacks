@@ -30,12 +30,9 @@ private:
     static int kAccNative;
 public:
 
-    Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress,
-         unsigned char* trampoline, size_t size) throw(HookException);
+    Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress) throw(HookException);
 
     ~Hook();
-
-    static void* genJniTrampoline(unsigned char* trampoline, unsigned int size) throw(AllocationException);
 
     void activate(bool activate);
 
@@ -44,8 +41,6 @@ public:
     void* getBackupMethod();
 
     short getBackupHotnessCount();
-
-    void resetHotnessCount(void *artMethod);
 
 private:
     void addNativeFlag(void* artMethod);
