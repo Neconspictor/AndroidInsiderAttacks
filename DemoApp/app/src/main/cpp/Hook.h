@@ -8,22 +8,29 @@
 #include "Exceptions.h"
 
 
+#if defined(__i386__)
+#define ADDRESS_POINTER uint32_t
+#else
+#error Only x86 architecture is supported!
+#endif
+
+
 class Hook {
 private:
     void* backupArtMethod;
-    void* hookArtMethod;
+    void* nativeHookHelperArtMethod;
     void* targetArtMethod;
-    int nativeHookAddress;
-    void* hookToNativePatchCode;
+    ADDRESS_POINTER nativeHookAddress;
+    void* helperToNativePatchCode;
     size_t patchCodeSize;
-    void* targetToHookPatchCode;
+    void* targetToHookHelperPatchCode;
 
     bool activated;
 
     static int kAccNative;
 public:
 
-    Hook(void* hookArtMethod, void* backupArtMethod, void* targetArtMethod, int nativeHookAddress,
+    Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress,
          unsigned char* trampoline, size_t size) throw(HookException);
 
     ~Hook();
@@ -35,6 +42,8 @@ public:
     bool isActivated();
 
     void* getBackupMethod();
+
+    short getBackupHotnessCount();
 
     void resetHotnessCount(void *artMethod);
 
@@ -48,6 +57,8 @@ private:
 
     int readAccessFlags(void* artMethod);
     void setAccessFlags(void* artMethod, int flags);
+
+    void setupBackupHotnessResetPatch();
 };
 
 

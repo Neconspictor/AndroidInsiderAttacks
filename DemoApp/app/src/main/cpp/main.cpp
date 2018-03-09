@@ -32,7 +32,6 @@
 #include "Util.h"
 #include "EvilModuleProvider.h"
 #include "Hook.h"
-#include "test/NativeHook.h"
 
 using namespace std;
 using namespace util;
@@ -184,9 +183,10 @@ static jstring doInBackgroundNative(JNIEnv* env, jobject sendTask, jobjectArray 
     jmethodID backup = (jmethodID)doInBackgroundHook->getBackupMethod();
 
     jclass clazz = env->GetObjectClass(sendTask);
-    doInBackgroundHook->resetHotnessCount(backup);
+    //doInBackgroundHook->resetHotnessCount(backup);
+    short hotnessCount = doInBackgroundHook->getBackupHotnessCount();
 
-    logE("doInBackgroundNative", "backup is: 0x%x", backup);
+    logE("doInBackgroundNative", "hotness count of backup method: %i", hotnessCount);
 
     return (jstring) env->CallNonvirtualObjectMethod(sendTask, clazz, backup, messages);
 }
@@ -206,14 +206,10 @@ static void onPostExecuteNative(JNIEnv* env, jobject sendTask, jstring returnVal
 
     jmethodID  backup = (jmethodID)onPostExecuteHook->getBackupMethod();
     jclass clazz = env->GetObjectClass(sendTask);
-    onPostExecuteHook->resetHotnessCount(backup);
+    //onPostExecuteHook->resetHotnessCount(backup);
     env->CallNonvirtualVoidMethod(sendTask, clazz, backup, returnValue);
 }
 
-
-static JNINativeMethod methods[] = {
-        {"doInBackgroundHook",    "([Ljava/lang/String;)Ljava/lang/String;",                    (void *)&doInBackgroundNative}
-};
 
 void setupHooks(JNIEnv* env, jclass evilModuleClass) {
     jclass sendTaskClass = env->FindClass(
@@ -246,42 +242,16 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
                                                       "(Ljava/lang/String;)V");
 
 
-    //env->RegisterNatives(evilModuleClass, methods, 1);
-
-
-
-    //void* hookArtMethod, void* backupArtMethod, void* targetArtMethod, int nativeHookAddress,unsigned char* trampoline, size_t size
     try {
         doInBackgroundHook = new Hook(doInBackgroundHookMethod,
                                       doInBackgroundBackup,
                                       doInBackgroundTarget,
-                                      (int) doInBackgroundNative,
+                                      (ADDRESS_POINTER) doInBackgroundNative,
                                       doInBackgroundHookToNativeTrampoline,
                                       sizeof(doInBackgroundHookToNativeTrampoline));
 
-        jclass testClass = env->FindClass(
-                "de/unipassau/fim/reallife_security/demoapp/demoapp/SendTask");
-        // public native String concat(String str);
-        jobject globalRef = env->NewGlobalRef(testClass);
-        jmethodID testMethod = env->GetMethodID(testClass, "closeSilently", "(Ljava/io/Closeable;)V");
-
         logE("doInBackgroundHookMethod", "%i", doInBackgroundHookMethod);
 
-        jmethodID constructor = env->GetMethodID(evilModuleClass, "<init>", "()V");
-        jobject obj = env->NewObject(evilModuleClass, constructor);
-
-        jstring message1 = env->NewStringUTF("string!");
-        jclass stringClass = env->FindClass("java/lang/String");
-        jobjectArray  messages = env->NewObjectArray(1,stringClass, message1);
-
-        //jstring response = (jstring) env->CallNonvirtualObjectMethod(obj, evilModuleClass, doInBackgroundBackup, messages);
-
-        //logE("response", "%s", env->GetStringUTFChars(response, NULL));
-
-        /*doInBackgroundHook = new NativeHook(doInBackgroundHookMethod, doInBackgroundTarget, doInBackgroundBackup, (int) (size_t)doInBackgroundNative,
-                                            doInBackgroundHookToNativeTrampoline,
-                                            sizeof(doInBackgroundHookToNativeTrampoline),
-                                            testMethod);*/
 
         doInBackgroundHook->activate(false);
     } catch (HookException e) {
@@ -292,7 +262,7 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
         onPostExecuteHook = new Hook(onPostExecuteHookMethod,
                                      onPostExecuteBackup,
                                      onPostExecuteTarget,
-                                     (int) onPostExecuteNative,
+                                     (ADDRESS_POINTER) onPostExecuteNative,
                                      onPostExecuteHookToNativeTrampoline,
                                      sizeof(onPostExecuteHookToNativeTrampoline));
 

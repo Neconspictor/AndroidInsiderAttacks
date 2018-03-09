@@ -19,7 +19,6 @@ set(
     src/main/cpp/Util.cpp
     src/main/cpp/Service.cpp
     src/main/cpp/Hook.cpp
-    src/main/cpp/test/NativeHook.cpp
 )
 
 #assign_source_group(${APP_SOURCES})

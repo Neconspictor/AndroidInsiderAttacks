@@ -11,6 +11,10 @@ public class EvilModule {
     protected native void onPostExecuteHook(String returnValue);
     protected native void onPostExecuteBackup(String returnValue);
 
+    public static void test() {
+        System.out.println("Hello World!");
+    }
+
     //private String readResponse(BufferedReader reader) throws IOException
     //private native String readResponseHook(BufferedReader reader) throws IOException;
     //private native String readResponseBackup(BufferedReader reader) throws IOException;
