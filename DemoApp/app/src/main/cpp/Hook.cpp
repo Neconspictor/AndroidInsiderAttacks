@@ -1,8 +1,3 @@
-//
-// Created by necon on 08.01.2018.
-//
-
-
 #include <sys/mman.h>
 #include <cstdlib>
 #include <cstring>
@@ -38,11 +33,11 @@ struct ArtMethod_x86_AndroidO {
 // 1. set eax/r0/x0 to the hook ArtMethod addr
 // 2. jump into its entry point
 // b8 78 56 34 12 ; mov eax, 0x12345678 (addr of the native hook method)
-// ff 70 20 ; push dword [eax + 0x20]
+// ff 70 1C ; push dword [eax + 0x1C]
 // c3 ; ret
 unsigned char redirectTrampoline[] = {
         0xb8, 0x78, 0x56, 0x34, 0x12,
-        0xff, 0x70, 0x20,
+        0xff, 0x70, 0x1C,
         0xc3
 };
 
@@ -63,15 +58,15 @@ unsigned char resetHotnessCountCode[] = {
 int Hook::kAccNative = 0x0100;
 
 Hook::Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress)
-throw(HookException) : helperToNativePatchCode(NULL),
-                                                               targetToHookHelperPatchCode(NULL){
+throw(HookException) : targetToHookHelperPatchCode(NULL){
 
     this->nativeHookHelperArtMethod = nativeHookHelperArtMethod;
     this->backupArtMethod = backupArtMethod;
     this->targetArtMethod = targetArtMethod;
     this->nativeHookAddress = nativeHookAddress;
 
-    targetToHookHelperPatchCode = genRedirectPatchCode(nativeHookHelperArtMethod, backupArtMethod);
+
+    targetToHookHelperPatchCode = genRedirectPatchCode(nativeHookHelperArtMethod);
 
     // copy the target art-method to the backup art-method location.
     // the backup art-method needn't be restored later. So this should be safe.
@@ -147,17 +142,16 @@ void Hook::setAccessFlags(void *artMethod, int flags) {
 }
 
 
-void* Hook::genRedirectPatchCode(void *hookArtMethod, void *backupArtMethod) throw(AllocationException) {
-        unsigned char *targetAddr;
+void* Hook::genRedirectPatchCode(void *hookArtMethod) throw(AllocationException) {
+    unsigned char *targetAddr;
 
-        redirectTrampoline[7] = (unsigned char)ART_METHOD.entry_point_from_quick_compiled_code_;
-        targetAddr = (unsigned char*)generateExecutableCode(sizeof(redirectTrampoline));
-        memcpy(targetAddr, redirectTrampoline, sizeof(redirectTrampoline));
+    targetAddr = (unsigned char*)generateExecutableCode(sizeof(redirectTrampoline));
+    memcpy(targetAddr, redirectTrampoline, sizeof(redirectTrampoline));
 
-        // replace with the actual ArtMethod addr
+    // replace with the actual ArtMethod addr
 
-        memcpy(targetAddr+1, &hookArtMethod, 4);
-        return targetAddr;
+    memcpy(targetAddr+1, &hookArtMethod, 4);
+    return targetAddr;
 }
 
 void *Hook::getBackupMethod() {
