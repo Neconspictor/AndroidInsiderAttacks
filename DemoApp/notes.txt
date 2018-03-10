@@ -14,3 +14,5 @@ To create a debug build without Android Studio, execute (gradle needn't to be in
 Make sure that the Android sdk is in the path variable 'ANDROID_HOME' or you have created a file called local.properties in this folder with the following content:
 ndk.dir=<Android-sdk-path>/ndk-bundle
 sdk.dir=<Android-sdk-path>
+
+The bin folder contains a precompiled debug apk of the DemoApp. If no AndroidStudio is available but an Android Virtual Device, this apk maybe helps.
