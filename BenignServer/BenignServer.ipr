@@ -253,36 +253,6 @@
     <option name="vmParameters" value="" />
   </component>
   <component name="libraryTable">
-    <library name="javax.json.processing-1.0" type="JsonProcessing">
-      <properties version="1.0" />
-      <CLASSES>
-        <root url="jar://$PROJECT_DIR$/lib/javax.json.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES />
-    </library>
-    <library name="Maven: com.sun.mail:javax.mail:1.5.0">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/com/sun/mail/javax.mail/1.5.0/javax.mail-1.5.0-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: javax.activation:activation:1.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/activation/activation/1.1/activation-1.1-sources.jar!/" />
-      </SOURCES>
-    </library>
     <library name="Maven: javax.json:javax.json-api:1.1.2">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/javax/json/javax.json-api/1.1.2/javax.json-api-1.1.2.jar!/" />
@@ -292,17 +262,6 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/javax/json/javax.json-api/1.1.2/javax.json-api-1.1.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: javax:javaee-api:7.0">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/javaee-api/7.0/javaee-api-7.0.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/javaee-api/7.0/javaee-api-7.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/javax/javaee-api/7.0/javaee-api-7.0-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: log4j:log4j:1.2.12">
@@ -358,6 +317,17 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/org/fxmisc/wellbehaved/wellbehavedfx/0.3/wellbehavedfx-0.3-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="Maven: org.glassfish:javax.json:1.1.2">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/javax.json/1.1.2/javax.json-1.1.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/javax.json/1.1.2/javax.json-1.1.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/javax.json/1.1.2/javax.json-1.1.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.reactfx:reactfx:2.0-M5">

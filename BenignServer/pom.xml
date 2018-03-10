@@ -27,14 +27,6 @@
             <version>1.2.12</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/javax/javaee-api -->
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-api</artifactId>
-            <version>7.0</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/org.fxmisc.richtext/richtextfx -->
         <dependency>
             <groupId>org.fxmisc.richtext</groupId>
@@ -48,6 +40,14 @@
             <artifactId>javax.json-api</artifactId>
             <version>1.1.2</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.glassfish/javax.json -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
 
     </dependencies>
 </project>
