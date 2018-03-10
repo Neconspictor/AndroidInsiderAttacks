@@ -16,20 +16,18 @@ import javafx.fxml.Initializable;
 
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.scene.CacheHint;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.InlineCssTextArea;
-import org.fxmisc.richtext.model.Paragraph;
 
+/**
+ * The controller for the main window of the bengin server.
+ */
 public class MainWindowController implements Initializable {
 
   private static Logger logger = Logger.getLogger(MainWindowController.class);
@@ -42,16 +40,24 @@ public class MainWindowController implements Initializable {
 
   private Stage configureMenu;
 
-  private Test messageContainer = new Test();
+  private MessageContainer messageContainer = new MessageContainer();
 
   private static int MAX_LINE_COUNT = 100000;
 
 
+  /**
+   * Not used since we initialize the controller later, when the model and the configuration menu exist.
+   */
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     logger.debug("initialize called!");
   }
 
+  /**
+   * Initializes this controller.
+   * @param configureMenu The configuration menu
+   * @param model The model this controller should use.
+   */
   public void init(Stage configureMenu, Model model) {
 
     this.configureMenu = configureMenu;
@@ -63,37 +69,47 @@ public class MainWindowController implements Initializable {
     scrollPane.setCache(true);
     scrollPane.setCacheHint(CacheHint.SPEED);
 
-      model.getRouter().addMessageListener((message -> {
+    // add a message listener to the model, so that
+    // the gui is updated when a new message is received.
+    model.getRouter().addMessageListener((message -> {
 
-            synchronized (messageContainer) {
-              messageContainer.messageQueue.add(message);
+          synchronized (messageContainer) {
+            messageContainer.messageQueue.add(message);
 
-              if (messageContainer.uiThreadIsReady) {
-                messageContainer.uiThreadIsReady = false;
-                Platform.runLater(() -> {
-                  synchronized(messageContainer) {
-                    addMessages();
-                  }
-                });
-              }
+            if (messageContainer.uiThreadIsReady) {
+              messageContainer.uiThreadIsReady = false;
+              Platform.runLater(() -> {
+                synchronized(messageContainer) {
+                  addMessages();
+                }
+              });
             }
+          }
 
-            while (messageContainer.messageQueue.size() > 200) {
-              try {
-                Thread.sleep(5);
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
+          while (messageContainer.messageQueue.size() > 200) {
+            try {
+              Thread.sleep(5);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
             }
+          }
 
-          }));
+        }));
     }
 
-    @FXML
+  /**
+   * Action that is called when the user clicks on the 'configure' menu item in the 'Settings' menu.
+   * @param event
+   */
+  @FXML
     public void handleConfigureOnAction(ActionEvent event) {
       configureMenu.show();
     }
 
+  /**
+   * Action that is called when the gui receives a new message.
+   * @param message The received message
+   */
   private void handleMessage(Message message) {
 
     if (message instanceof LogMessage) {
@@ -110,6 +126,10 @@ public class MainWindowController implements Initializable {
     }
   }
 
+  /**
+   * Action that is called when the gui receives a communication message.
+   * @param message The received message
+   */
   private void handleCommunicationMessage(CommunicationMessage message) {
     String desc = message.getDescription();
     String content = message.getContent();
@@ -121,6 +141,10 @@ public class MainWindowController implements Initializable {
     textView.setStyle(diff.oldLength, diff.newLength, "-fx-fill: sandybrown;");
   }
 
+  /**
+   * Action that is called when the gui receives a log message.
+   * @param message The received message
+   */
   private void handleLogMessage(LogMessage message) {
     LengthDiff diff = addText(textView, message.getContent());
     Level level = message.getLevel();
@@ -137,11 +161,18 @@ public class MainWindowController implements Initializable {
     textView.setStyle(diff.oldLength, diff.newLength, style);
   }
 
+  /**
+   * Default action that is called when the gui receives a message.
+   * @param message The received message
+   */
   private void handleMessageDefault(Message message) {
     LengthDiff diff = addText(textView, message.getContent());
     textView.setStyle(diff.oldLength, diff.newLength,"-fx-fill: white;");
   }
 
+  /**
+   * Adds all collected messages to the text view.
+   */
   private void addMessages() {
       boolean doAnimation = messageContainer.messageQueue.size() < 30;
 
@@ -166,6 +197,13 @@ public class MainWindowController implements Initializable {
       animation.play();
   }
 
+  /**
+   * Adds text to the end of text view.
+   * @param textView The text view the text should be inserted to.
+   * @param text The text to add.
+   * @return The difference between the length of the text view before the text was added
+   * and the length of the text view after the text was added.
+   */
   private LengthDiff addText(InlineCssTextArea textView, String text) {
     LengthDiff diff =  new LengthDiff();
     diff.oldLength = textView.getLength();
@@ -174,12 +212,19 @@ public class MainWindowController implements Initializable {
     return diff;
   }
 
-  private static class Test{
+  /**
+   * Stores stuff related to messages.
+   */
+  private static class MessageContainer {
     public List<Message> messageQueue = new LinkedList<>();
 
     public boolean uiThreadIsReady = true;
   }
 
+  /**
+   * A container for storing the difference of a new and old length.
+   * Used for storing the length difference of the length of a text view.
+   */
   private static class LengthDiff {
     public int oldLength;
     public int newLength;

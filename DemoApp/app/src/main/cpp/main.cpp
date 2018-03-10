@@ -262,16 +262,6 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_deactivate
 
 }
 
-extern "C"
-JNIEXPORT jstring
-JNICALL
-Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */) {
-    const char* hello = "Hello from C++";
-    return env->NewStringUTF(hello);
-}
-
 
 /**
  * Called when the library is loaded by the benign app.
@@ -290,7 +280,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
     // Hook the benign app
     doHooking(env);
 
-    logE("EVIL_LIB::stringFromJNI", "Done");
+    logE("EVIL_LIB::JNI_OnLoad", "Done");
 
     return JNI_VERSION_1_6;
 }

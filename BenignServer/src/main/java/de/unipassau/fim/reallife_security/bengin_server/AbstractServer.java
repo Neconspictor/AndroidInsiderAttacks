@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * Implements default behaviour for servers used in the 'Android Insider Attacks' project.
  */
 public abstract class AbstractServer implements Server {
 
@@ -30,17 +30,30 @@ public abstract class AbstractServer implements Server {
   protected int port = -1;
 
 
+  /**
+   * Default constructor.
+   */
   public AbstractServer()  { }
 
+  /**
+   * @return The port number this server is running on.
+   */
   public int getPort() {
     return port;
   }
 
+  /**
+   * @return The size of the used thread pool for serving multiple clients i parallel.
+   */
   public int getThreadPoolSize() {
     return threadPoolSize;
   }
 
-  public abstract void handleSocket(Socket sslSocket);
+  /**
+   * Action that should be called if a client connects to the server.
+   * @param socket The connection to the client.
+   */
+  public abstract void handleSocket(Socket socket);
 
   @Override
   public void start() throws IOException {
@@ -83,21 +96,10 @@ public abstract class AbstractServer implements Server {
     return !serverSocket.isClosed();
   }
 
-  //protected abstract ServerSocketFactory createFactory(String keyStoreFileName, String password) throws FactoryException;
-
-  /*protected synchronized void route(String message, Category category) {
-    for (MessageListener listener : listeners) {
-      listener.onMessageReceive(message, category);
-    }
-  }*/
-
-  /*protected void route(Exception e, Category category) {
-    MessageListener listener = (message, catagoryCallback) -> route(message, catagoryCallback);
-    MessageListenerPrintStream printStream = new MessageListenerPrintStream(listener);
-    e.printStackTrace(printStream);
-    printStream.submit(category);
-  }*/
-
+  /**
+   * Initializes this server. This method has to be called before the server is started.
+   * @throws InitException If the server couldn not be initialized.
+   */
   public void init() throws InitException {
 
     if (initialized) throw new InitException("AbstractServer is already initialized!");
@@ -122,20 +124,18 @@ public abstract class AbstractServer implements Server {
     initialized = true;
   }
 
+  /**
+   * Creates a factory for creating a server socket, that is used by this server.
+   * @return
+   * @throws FactoryException
+   */
   protected abstract ServerSocketFactory createFactory() throws FactoryException;
 
+  /**
+   * Main loop. Incoming client connections are accepted by the created server socket.
+   * And than the connection is served by the method 'handleSocket'
+   */
   protected void serve() {
-/*
-    long timeBefore = System.nanoTime();
-
-    for (int i = 0; i < 10000; ++i) {
-      logger.debug("Hello World: " + i);
-    }
-
-    long diff = System.nanoTime() - timeBefore;
-
-    System.out.println("Needed time: " + diff / 1000000000.0d + " seconds");
-*/
     while (!serverSocket.isClosed()) {
       try {
         logger.debug("Waiting for client...");
@@ -154,10 +154,22 @@ public abstract class AbstractServer implements Server {
     logger.info("Finished serving.");
   }
 
+  /**
+   * Sets the port where this server should run on.
+   * IMPORTANT: Changes effect only if the server is not initialized, yet.
+   *
+   * @param port The port this server should run on
+   */
   public void setPort(int port) {
     this.port = port;
   }
 
+  /**
+   * Sets the thread pool size that determines how much clients can be served in parallel.
+   * IMPORTANT: Changes effect only if the server is not initialized, yet.
+   *
+   * @param threadPoolSize The thread pool size to use.
+   */
   public void setThreadPoolSize(int threadPoolSize) {
     this.threadPoolSize = threadPoolSize;
   }

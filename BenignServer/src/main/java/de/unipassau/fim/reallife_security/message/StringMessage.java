@@ -1,12 +1,16 @@
 package de.unipassau.fim.reallife_security.message;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * A message that contains text content.
  */
 public class StringMessage implements Message {
 
   protected String message;
 
+  /**
+   * Creates a new string message.
+   * @param message
+   */
   public StringMessage(String message) {
     this.message = message + System.getProperty("line.separator");
   }

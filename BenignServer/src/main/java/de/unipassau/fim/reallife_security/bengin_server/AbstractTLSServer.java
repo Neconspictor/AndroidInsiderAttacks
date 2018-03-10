@@ -14,7 +14,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * A base server implementation for servers that use TLS encryption for the communication with the clients.
  */
 public abstract class AbstractTLSServer extends AbstractServer {
 
@@ -23,6 +23,9 @@ public abstract class AbstractTLSServer extends AbstractServer {
   protected String keyStoreFileName;
   protected String password;
 
+  /**
+   * Default constructor.
+   */
   public AbstractTLSServer() {
     super();
   }
@@ -36,10 +39,19 @@ public abstract class AbstractTLSServer extends AbstractServer {
     super.init();
   }
 
+  /**
+   * Sets the key store that should be used for creating TLS connections.
+   * IMPORTANT: Changes effect only if the server is not initialized, yet.
+   * @param keyStoreFileName The key store file name.
+   */
   public void setKeyStoreFileName(String keyStoreFileName) {
     this.keyStoreFileName = keyStoreFileName;
   }
 
+  /**
+   * Sets the password of the key store file.
+   * @param password The password of the key store file.
+   */
   public void setPassword(String password) {
     this.password = password;
   }
@@ -56,40 +68,95 @@ public abstract class AbstractTLSServer extends AbstractServer {
 
     try {
       return createSSLFactory(keyStoreInputStream, password);
-    } catch (CertificateException | IOException | KeyManagementException | KeyStoreException
-        | NoSuchAlgorithmException | UnrecoverableKeyException e) {
+    } catch (CertificateException
+        | IOException
+        | KeyManagementException
+        | KeyStoreException
+        | UnrecoverableKeyException e) {
       throw new FactoryException(e);
     }
   }
 
+  /**
+   * Creates a ServerSocketFactory that uses TLS encryption.
+   * @param keyStoreInputStream The key store.
+   * @param password The password for the key store.
+   * @return A ServerSocketFactory that uses TLS encryption.
+   * @throws KeyStoreException If an error occurs that is related with loading or initializing
+   *  the key store.
+   * @throws CertificateException If any of the certificates in the keystore could not be loaded
+   * @throws IOException If an IO error occurs
+   * @throws UnrecoverableKeyException If keys in the key store cannot be recovered
+   *          (e.g. the given password is wrong).
+   * @throws KeyManagementException If the ssl context cannot be initialized
+   */
   protected ServerSocketFactory createSSLFactory(InputStream keyStoreInputStream, String password) throws
-      KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, UnrecoverableKeyException,
+      KeyStoreException, CertificateException, IOException, UnrecoverableKeyException,
       KeyManagementException {
 
-    //InputStream trustStoreInputStream = ClassLoader.class.getResourceAsStream("/publicKeystore.p12");
+    KeyManagerFactory kmf = createAndInitKeyManagerFactory(keyStoreInputStream, password);
 
-    KeyStore keyStore = KeyStore.getInstance("PKCS12");
-    //keyStore.load(null, null);
-    keyStore.load(keyStoreInputStream, password.toCharArray());
-
-    KeyManagerFactory kmf =
-        KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-    kmf.init(keyStore, password.toCharArray());
-
-    //KeyStore trustStore = KeyStore.getInstance("PKCS12");
-    //trustStore.load(trustStoreInputStream, "password".toCharArray());
-
-    // init the trust networkManager factory by read certificates
-    //TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-    //tmf.init(trustStore);
-
-    SSLContext sslContext = SSLContext.getInstance("TLS");
-    //sslContext.init(kmf.getKeyManagers(), null, null);
-    //sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+    SSLContext sslContext = getTLSContext();
     sslContext.init(kmf.getKeyManagers(), null, null);
 
     SSLContext.setDefault(sslContext);
 
     return sslContext.getServerSocketFactory();
+  }
+
+
+  /**
+   * Creates and initializes a KeyManagerFactory with a given key store (provided as input stream).
+   * @param in The key store
+   * @param password The password of the keystore
+   *
+   * @return A KeyManagerFactory that is initialized with the key store.
+   *
+   * @throws IOException If any IO error occurs.
+   * @throws CertificateException If any of the certificates in the keystore could not be loaded
+   * @throws UnrecoverableKeyException If keys in the key store cannot be recovered
+   *          (e.g. the given password is wrong).
+   * @throws KeyStoreException If the created KeyManagerFactory could not be initialized.
+   */
+  private KeyManagerFactory createAndInitKeyManagerFactory(InputStream in, String password) throws
+      IOException,
+      CertificateException,
+      UnrecoverableKeyException,
+      KeyStoreException {
+    KeyManagerFactory kmf;
+
+    try {
+      kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+      KeyStore keyStore = getPKCS12KeyStore();
+      keyStore.load(in, password.toCharArray());
+      kmf.init(keyStore, password.toCharArray());
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("NoSuchAlgorithmException thrown for default algorithm!", e);
+    }
+
+    return kmf;
+  }
+
+
+  /**
+   * @return A PKCS12 key store instance.
+   */
+  private KeyStore getPKCS12KeyStore() {
+    try {
+      return KeyStore.getInstance("PKCS12");
+    } catch (KeyStoreException e) {
+      throw new RuntimeException("PKCS12 KeyStore not found!", e);
+    }
+  }
+
+  /**
+   * @return A SSLContext that uses the TLS algorithm.
+   */
+  private SSLContext getTLSContext() {
+    try {
+      return SSLContext.getInstance("TLS");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException("TLS context not found!", e);
+    }
   }
 }

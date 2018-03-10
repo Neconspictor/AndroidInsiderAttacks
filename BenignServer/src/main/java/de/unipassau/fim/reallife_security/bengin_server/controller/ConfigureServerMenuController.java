@@ -18,11 +18,11 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 /**
- * Created by David Goeth on 12.01.2018.
+ * Controller for the 'Configure Server' dialog.
  */
-public class StartServerMenuController implements Initializable {
+public class ConfigureServerMenuController implements Initializable {
 
-  private static Logger logger = Logger.getLogger(StartServerMenuController.class);
+  private static Logger logger = Logger.getLogger(ConfigureServerMenuController.class);
 
   private static int UNSIGNED_SHORT_SIZE = (int) Math.pow(2,16);
 
@@ -41,6 +41,11 @@ public class StartServerMenuController implements Initializable {
   @FXML
   private TextField portTextField;
 
+  /**
+   * Initializes this controller with a given model and a root stage.
+   * @param root The stage this controller belongs to.
+   * @param model The model that should be controlled.
+   */
   public void init(Stage root, Model model) {
     this.root = root;
     this.model = model;
@@ -54,6 +59,10 @@ public class StartServerMenuController implements Initializable {
       portTextField.setText(String.valueOf(data.getPort()));
   }
 
+  /**
+   * Action that should be called when the dialog is closed by the user.
+   * @param event not used
+   */
   public void onClose(WindowEvent event) {
     try {
       data.setPrivateKeyStoreFile(selectedPrivateKeystore.getText());
@@ -92,6 +101,10 @@ public class StartServerMenuController implements Initializable {
     });
   }
 
+  /**
+   * Starts the server
+   * @param event not used
+   */
   @FXML
   public void startServer(ActionEvent event) {
 
@@ -110,7 +123,6 @@ public class StartServerMenuController implements Initializable {
 
     logger.debug("Chosen private key store: " + privateKeyStore);
     logger.debug("Private key store exists: " + privateKeyStore.exists());
-    //logger.debug("Password: " + password);
     logger.debug("Port: " + port);
 
     model.setFactory(router -> {
@@ -134,11 +146,13 @@ public class StartServerMenuController implements Initializable {
     root.hide();
   }
 
+  /**
+   * Lets the user select a private key store from the file explorer.
+   * @param event not used
+   */
   @FXML
   public void selectPrivateKeystore(ActionEvent event) {
     FileChooser fileChooser = new FileChooser();
-    //FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
-    //fileChooser.getExtensionFilters().add(extFilter);
     String path = selectedPrivateKeystore.getText();
     File folder = new File(path);
     path = folder.getParent();

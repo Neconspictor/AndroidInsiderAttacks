@@ -4,9 +4,15 @@ import de.unipassau.fim.reallife_security.exception.InitException;
 import de.unipassau.fim.reallife_security.message.MessageRouter;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * A contract for creating server instances.
  */
 public interface ServerFactory {
 
+  /**
+   * Creates a new Server and initializes it with a given messag router.
+   * @param router The message router the server should use.
+   * @return A server that uses the given message router.
+   * @throws InitException If the server couldn't be initialized.
+   */
   Server create(MessageRouter router) throws InitException;
 }

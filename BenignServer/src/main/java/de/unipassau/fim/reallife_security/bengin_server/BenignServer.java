@@ -3,7 +3,6 @@ package de.unipassau.fim.reallife_security.bengin_server;
 import de.unipassau.fim.reallife_security.exception.InitException;
 import de.unipassau.fim.reallife_security.message.CommunicationMessage;
 import de.unipassau.fim.reallife_security.message.MessageRouter;
-import de.unipassau.fim.reallife_security.message.StringMessage;
 import org.apache.log4j.Logger;
 
 import javax.net.ssl.SSLSession;
@@ -12,7 +11,10 @@ import java.io.*;
 import java.net.Socket;
 
 /**
- * Created by David Goeth on 19.12.2017.
+ * The benign server for the project 'Android Insider Attacks'.
+ * The benign server is responsible for accepting encrypted text messages of a client
+ * and response with a message that describes what the server has received.
+ *
  */
 public class BenignServer extends AbstractTLSServer {
 
@@ -20,6 +22,10 @@ public class BenignServer extends AbstractTLSServer {
 
   private MessageRouter router;
 
+  /**
+   * Creates a new BenignServer object.
+   * @param router Used to route received messages to listeners.
+   */
   public BenignServer(MessageRouter router) {
     this.router = router;
   }

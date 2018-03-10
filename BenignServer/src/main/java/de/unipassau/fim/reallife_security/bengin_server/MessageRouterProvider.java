@@ -4,13 +4,16 @@ import de.unipassau.fim.reallife_security.message.MessageRouter;
 import de.unipassau.fim.reallife_security.message.MessageRouterImpl;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * A provider for a static message router.
  */
-public class LogMessageRouterProvider {
+public class MessageRouterProvider {
 
   private static MessageRouter instance;
 
-  public static MessageRouter getLogMessageRouter() {
+  /**
+   * @return The message router of this class.
+   */
+  public static MessageRouter getMessageRouter() {
     if (instance == null) instance = new MessageRouterImpl();
     return instance;
   }

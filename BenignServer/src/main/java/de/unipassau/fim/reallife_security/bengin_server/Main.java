@@ -1,6 +1,6 @@
 package de.unipassau.fim.reallife_security.bengin_server;
 
-import de.unipassau.fim.reallife_security.bengin_server.controller.StartServerMenuController;
+import de.unipassau.fim.reallife_security.bengin_server.controller.ConfigureServerMenuController;
 import de.unipassau.fim.reallife_security.bengin_server.controller.MainWindowController;
 import de.unipassau.fim.reallife_security.message.MessageRouter;
 import javafx.application.Application;
@@ -17,21 +17,22 @@ import java.io.IOException;
 
 public class Main extends Application {
 
-  private static final String KEYSTORE_PASSWORD = "password";
-  private static final String KEYSTORE_FILE_NAME = "/privateKeystore.p12";
-
   private static Logger logger = Logger.getLogger(Application.class);
 
   private static MessageRouter router;
 
   static {
-    router = LogMessageRouterProvider.getLogMessageRouter();
+    router = MessageRouterProvider.getMessageRouter();
   }
 
   private Stage mainWindow;
   private Stage configureMenu;
-  private StartServerMenuController startServerController;
+  private ConfigureServerMenuController startServerController;
 
+  /**
+   * Starts the benign server.
+   * @param args Not used
+   */
   public static void main(String[] args) {
     launch(args);
   }

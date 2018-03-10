@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by David Goeth on 10.01.2018.
+ * Default implementation of a message router.
  */
 public class MessageRouterImpl implements MessageRouter {
 
@@ -25,6 +25,7 @@ public class MessageRouterImpl implements MessageRouter {
     }
   }
 
+  @Override
   public void removeMessageListener(MessageListener listener) {
     synchronized (this) {
       listeners.remove(listener);

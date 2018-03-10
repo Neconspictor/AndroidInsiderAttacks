@@ -4,11 +4,10 @@ import de.unipassau.fim.reallife_security.exception.InitException;
 import de.unipassau.fim.reallife_security.message.MessageRouter;
 import org.apache.log4j.Logger;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * The data model for the bengin server. Manages the server and routes messages received from the server.
  */
 public class Model  {
 
@@ -22,6 +21,11 @@ public class Model  {
 
   private SaveData data;
 
+  /**
+   * Creates a new Model.
+   * @param router Used for routing messages.
+   * @param data Data for starting the server.
+   */
   public Model(MessageRouter router, SaveData data) {
     this.router = router;
     this.factory = null;
@@ -29,22 +33,42 @@ public class Model  {
     server = null;
   }
 
+  /**
+   *
+   * @return The used server factory.
+   */
   public ServerFactory getFactory() {
     return factory;
   }
 
+  /**
+   *
+   * @return The used message router.
+   */
   public MessageRouter getRouter() {
     return router;
   }
 
+  /**
+   * Sets the factory for creating the server.
+   * @param factory The server factory to use for the server.
+   */
   public void setFactory(ServerFactory factory) {
     this.factory = factory;
   }
 
+  /**
+   * Sets the router to use for routing messages.
+   * @param router The message router to use.
+   */
   public void setRouter(MessageRouter router) {
     this.router = router;
   }
 
+  /**
+   * Action that starts the server.
+   * @throws IOException If an IO error occurs.
+   */
   public void startServer() throws IOException{
 
     if (factory == null) throw new IOException("No ServerFactory was set!");
@@ -63,6 +87,9 @@ public class Model  {
     server.start();
   }
 
+  /**
+   * Stops the server. Method blocks.
+   */
   public void stopServer() {
     if (server != null && server.isRunning())
       try {
@@ -72,6 +99,9 @@ public class Model  {
       }
   }
 
+  /**
+   * @return The used Save Data that are stored on disk.
+   */
   public SaveData getData() {
     return new SaveData(data);
   }

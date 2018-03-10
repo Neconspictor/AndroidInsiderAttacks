@@ -11,7 +11,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Created by David Goeth on 11.01.2018.
+ * An message appender for log4j so that log messages that are logged via log4j
+ * Also can be accessed by message listeners. That can be used e.g. to log messages
+ * in a gui text view.
  */
 public class MessageAppender extends AppenderSkeleton {
 
@@ -21,6 +23,9 @@ public class MessageAppender extends AppenderSkeleton {
 
   protected String method;
 
+  /**
+   * Default constructor.
+   */
   public MessageAppender() {super();}
 
 
@@ -38,10 +43,7 @@ public class MessageAppender extends AppenderSkeleton {
     super.activateOptions();
   }
 
-  public boolean isTraceEnabled() {
-    return false;
-  }
-
+  @Override
   protected void append(LoggingEvent loggingEvent) {
     StringBuilder builder = new StringBuilder();
     String message = this.layout.format(loggingEvent);
@@ -70,18 +72,26 @@ public class MessageAppender extends AppenderSkeleton {
     router.route(new LogMessage(builder.toString(), loggingEvent.getLevel()));
   }
 
+  @Override
   public void close() {
 
   }
 
+  @Override
   public boolean requiresLayout() {
     return true;
   }
 
+  /**
+   * @param routerProvider The name of class that provides a method for creating a MessageRouter.
+   */
   public void setRouterProvider(String routerProvider) {
     this.routerProvider = routerProvider;
   }
 
+  /**
+   * @param method The name of a method for creating a MessageRouter.
+   */
   public void setRouterProviderMethod(String method) {
     this.method = method;
   }
