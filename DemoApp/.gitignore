@@ -8,8 +8,3 @@
 build
 /captures
 .externalNativeBuild
-/decompileOAT/*.apk
-/decompileOAT/*.dump
-/decompileOAT/*.dex
-/decompileOAT/*.class
-*.apk
