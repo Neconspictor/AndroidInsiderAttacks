@@ -1,1 +1,2 @@
 Password for privateKeystore.p12: password
+Port number for the server: 8080
