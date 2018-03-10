@@ -1,0 +1,1 @@
+java -jar evilServer.jar EvilModule.dex
