@@ -1,0 +1,4 @@
+To generate the jar file execute:
+mvn jfx:jar
+
+The final jar file is than located at: ./target/jfx/app/
