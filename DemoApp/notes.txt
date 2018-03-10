@@ -2,7 +2,7 @@ Important: The DemoApp tries to connect to the host machine, by using the addres
 inside an Android Virtual Device. Maybe it works, too, if the app is started on an Android Device, that is usb connected to a computer, but this is not
 tested!
 
-The Android Virtual Device has to use Android 8 and an x86 image.
+The Android Virtual Device has to use Android 8 and an x86 image. For the ABI use version 26.
 
 
 To import the project into Android Studio:
