@@ -1,0 +1,4 @@
+Command to convert a *.jar file to a *.dex file:
+dx --dex --output=<dex-file-output> <jar-file>
+
+It is assumed, that the dx program (ships with android studio), is on the classpath!

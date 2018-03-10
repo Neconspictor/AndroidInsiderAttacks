@@ -1,1 +1,0 @@
-dx --dex --output=EvilModule.dex EvilModule.jar
