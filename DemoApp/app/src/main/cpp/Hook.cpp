@@ -11,7 +11,7 @@ using namespace std;
 using namespace util;
 
 /**
- * Data is based on https://android.googlesource.com/platform/art/+/oreo-release/runtime/art_method.h
+ * Data is based on https://android.googlesource.com/platform/art/+/android-8.0.0_r36/runtime/art_method.h
  *  */
 struct ArtMethod_x86_AndroidO {
     int declaring_class_ = 0;                       // GcRoot<mirror::Class> declaring_class_;
@@ -54,7 +54,7 @@ unsigned char resetHotnessCountCode[] = {
         0xc3 // ret  -> jumps to address that lies on top of the stack  offset: 18
 };
 
-//https://android.googlesource.com/platform/art/+/oreo-release/runtime/modifiers.h
+//https://android.googlesource.com/platform/art/+/android-8.0.0_r36/runtime/modifiers.h
 int Hook::kAccNative = 0x0100;
 
 Hook::Hook(void* nativeHookHelperArtMethod, void* backupArtMethod, void* targetArtMethod, ADDRESS_POINTER nativeHookAddress)

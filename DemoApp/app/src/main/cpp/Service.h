@@ -1,9 +1,5 @@
-//
-// Created by necon on 07.01.2018.
-//
-
-#ifndef REPO_SERVICE_H
-#define REPO_SERVICE_H
+#ifndef SERVICE_H
+#define SERVICE_H
 
 
 #include <string>
@@ -57,4 +53,4 @@ struct Service {
 };
 
 
-#endif //REPO_SERVICE_H
+#endif //SERVICE_H

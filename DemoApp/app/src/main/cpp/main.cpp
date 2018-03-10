@@ -47,7 +47,15 @@ static jclass evilModuleClass = NULL;
 static jobject evilModuleClassRef = NULL;
 static jobject loaderRef = NULL;
 
-//protected String doInBackground(String... messages)
+/**
+ * Native hook function for the following java method:
+ * String de.unipassau.fim.reallife_security.demoapp.demoapp.SendTask.doInBackground(String... messages)
+ *
+ * @param env The current JNI environment object
+ * @param sendTask The SendTask object the original java method is called for.
+ * @param messages The committed messages parameter of the original java method;
+ * @return
+ */
 static jstring doInBackgroundNative(JNIEnv* env, jobject sendTask, jobjectArray messages) {
 
     logE("doInBackgroundNative", "called!");
@@ -83,26 +91,38 @@ static jstring doInBackgroundNative(JNIEnv* env, jobject sendTask, jobjectArray 
     return (jstring) env->CallNonvirtualObjectMethod(sendTask, clazz, backup, messages);
 }
 
-////void evil.evil_module.EvilModule.onPostExecuteHook(java.lang.String)
-static void onPostExecuteNative(JNIEnv* env, jobject sendTask, jstring returnValue) {
+/**
+ * Native hook function for the following java method:
+ * void de.unipassau.fim.reallife_security.demoapp.demoapp.SendTask.onPostExecuteHook(java.lang.String)
+ *
+ * @param env The current JNI environment object
+ * @param sendTask The SendTask object the original java method is called for.
+ * @param response The committed response parameter of the original java method;
+ */
+static void onPostExecuteNative(JNIEnv* env, jobject sendTask, jstring response) {
     logE("onPostExecuteNative", "called!");
 
     if (onPostExecuteHook->isActivated()) {
         std::ostringstream ss;
-        if (returnValue != NULL) {
-            ss  << env->GetStringUTFChars(returnValue, NULL)
+        if (response != NULL) {
+            ss  << env->GetStringUTFChars(response, NULL)
                 << " <<< received message was intercepted by evil lib >>>";
-            returnValue = env->NewStringUTF(ss.str().c_str());
+            response = env->NewStringUTF(ss.str().c_str());
         }
     }
 
     jmethodID  backup = (jmethodID)onPostExecuteHook->getBackupMethod();
     jclass clazz = env->GetObjectClass(sendTask);
     //onPostExecuteHook->resetHotnessCount(backup);
-    env->CallNonvirtualVoidMethod(sendTask, clazz, backup, returnValue);
+    env->CallNonvirtualVoidMethod(sendTask, clazz, backup, response);
 }
 
 
+/**
+ * Creates the hooks and sets them up. Finally deactivates the hooks.
+ * @param env The current JNI environment object
+ * @param evilModuleClass The java class of the evil module.
+ */
 void setupHooks(JNIEnv* env, jclass evilModuleClass) {
     jclass sendTaskClass = env->FindClass(
             "de/unipassau/fim/reallife_security/demoapp/demoapp/SendTask");
@@ -159,7 +179,6 @@ void setupHooks(JNIEnv* env, jclass evilModuleClass) {
     } catch (HookException e) {
         logE("setupHooks", "Couldn't create onPostExecuteHook: %s", e.what());
     }
-
 }
 
 /**
@@ -211,7 +230,13 @@ void doHooking(JNIEnv* env) {
     hooksAreLoaded = true;
 }
 
-
+/**
+ * Loads a java class from a given class loader and the name of the class.
+ * @param loader The java class loader
+ * @param className The name of the class
+ * @param env The current JNI environment object
+ * @return The loaded java class.
+ */
 jclass loadClass(jobject loader, const char* className, JNIEnv *env) throw(ClassNotFoundException){
 
     // Get function ClassLoader.loadClass()
@@ -244,6 +269,9 @@ jclass loadClass(jobject loader, const char* className, JNIEnv *env) throw(Class
     return evilModuleClass;
 }
 
+/**
+ * Native function that activates the hooks
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_activateHookJNI(JNIEnv *env,
@@ -252,7 +280,12 @@ Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_activateHo
     if (doInBackgroundHook) doInBackgroundHook->activate(true);
     if (onPostExecuteHook) onPostExecuteHook->activate(true);
 
-}extern "C"
+}
+
+/**
+ * Native function that deactivates the hooks
+ */
+extern "C"
 JNIEXPORT void JNICALL
 Java_de_unipassau_fim_reallife_1security_demoapp_demoapp_MainActivity_deactivateHookJNI(JNIEnv *env,
                                                                                         jobject instance) {

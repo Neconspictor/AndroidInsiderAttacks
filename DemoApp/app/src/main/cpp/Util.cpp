@@ -1,7 +1,3 @@
-//
-// Created by necon on 07.01.2018.
-//
-
 #include "Util.h"
 
 using namespace util;
@@ -43,23 +39,6 @@ std::string util::getInternalStorageDir(JNIEnv* env) {
 }
 
 
-/*
- * public static ClassLoader createDexPathClassLoader(String dexFileName) {
-        Context context = getCurrentContext();
-        File internalStorage = getInternalStorageDirectory();
-        String internalStoragePath = internalStorage.getAbsolutePath();
-        //ClassLoader systemLoader = ClassLoader.getSystemClassLoader();
-
-        String path = internalStoragePath + "/" +  dexFileName;
-        //return new DexClassLoader(path,
-        //        context.getDir("outdex", Context.MODE_PRIVATE).getAbsolutePath(),
-        //        path, context.getClassLoader());
-
-        return new PathClassLoader(path, context.getClassLoader());
-    }
- * */
-
-
 jobject util::createDexClassLoader(const char *dexFilePath, JNIEnv* env) {
     jobject context = getGlobalContext(env);
 
@@ -71,16 +50,10 @@ jobject util::createDexClassLoader(const char *dexFilePath, JNIEnv* env) {
     jmethodID getClassLoaderMethod = env->GetMethodID(contextClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
     jobject parentClassLoader = env->CallObjectMethod(context, getClassLoaderMethod);
 
-    //ClassLoader systemLoader = ClassLoader.getSystemClassLoader();
-    //jclass classLoaderClass = env->FindClass("java/lang/ClassLoader");
-    //jmethodID getClassLoaderMethod = env->GetStaticMethodID(classLoaderClass, "getSystemClassLoader", "()Ljava/lang/ClassLoader;");
-    //jobject parentClassLoader = env->CallStaticObjectMethod(classLoaderClass, getClassLoaderMethod);
-
     // IMPORTANT: Do not delete this jstring, otherwise the app is not loaded properly!
     jstring dexFilePathJString = env->NewStringUTF(dexFilePath);
 
     jobject loader = env->NewObject(pathClassLoaderClass, constructor, dexFilePathJString, parentClassLoader);
-    //env->ReleaseStringUTFChars(dexFilePathJString, dexFilePath);
 
     return loader;
 }

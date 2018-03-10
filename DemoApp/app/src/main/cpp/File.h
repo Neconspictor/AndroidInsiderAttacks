@@ -1,9 +1,5 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
-#ifndef BACHELOR_SEMINAR_FILE_H
-#define BACHELOR_SEMINAR_FILE_H
+#ifndef FILE_H
+#define FILE_H
 
 
 #include "Exceptions.h"
@@ -29,4 +25,4 @@ private:
 };
 
 
-#endif //BACHELOR_SEMINAR_FILE_H
+#endif //FILE_H

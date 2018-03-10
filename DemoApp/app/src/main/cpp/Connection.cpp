@@ -1,7 +1,3 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
 #include "Connection.h"
 #include "Util.h"
 

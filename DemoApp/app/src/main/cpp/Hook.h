@@ -1,5 +1,5 @@
-#ifndef DEMOAPP_HOOK_H
-#define DEMOAPP_HOOK_H
+#ifndef HOOK_H
+#define HOOK_H
 
 #include "Exceptions.h"
 
@@ -27,8 +27,6 @@
  * so that this ArtMethod can be called without provoking a crash, as it needs to have a proper prolog
  * that is located at the entry point of the ArtMethod. So when we speak of a valid native ArtMethod
  * we usually mean the ArtMethod of a native java method.
- * TODO: Is there something more to consider?
- *
  */
 class Hook {
 private:
@@ -182,4 +180,4 @@ private:
 };
 
 
-#endif //DEMOAPP_HOOK_H
+#endif //HOOK_H

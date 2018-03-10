@@ -1,7 +1,3 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
 #include "Exceptions.h"
 
 using namespace std;

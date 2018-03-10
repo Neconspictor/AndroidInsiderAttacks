@@ -1,9 +1,5 @@
-//
-// Created by necon on 07.01.2018.
-//
-
-#ifndef REPO_EVILMODULEPROVIDER_H
-#define REPO_EVILMODULEPROVIDER_H
+#ifndef EVILMODULEPROVIDER_H
+#define EVILMODULEPROVIDER_H
 
 #include <string>
 #include "Exceptions.h"
@@ -52,4 +48,4 @@ private:
 };
 
 
-#endif //REPO_EVILMODULEPROVIDER_H
+#endif //EVILMODULEPROVIDER_H

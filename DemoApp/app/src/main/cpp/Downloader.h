@@ -1,9 +1,5 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
-#ifndef BACHELOR_SEMINAR_DOWNLOADFILE_H
-#define BACHELOR_SEMINAR_DOWNLOADFILE_H
+#ifndef DOWNLOADFILE_H
+#define DOWNLOADFILE_H
 
 #include "File.h"
 #include "Connection.h"
@@ -33,4 +29,4 @@ private:
 };
 
 
-#endif //BACHELOR_SEMINAR_DOWNLOADFILE_H
+#endif //DOWNLOADFILE_H

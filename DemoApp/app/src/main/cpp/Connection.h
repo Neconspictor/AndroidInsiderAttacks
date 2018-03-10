@@ -1,9 +1,5 @@
-//
-// Created by Neconspictor on 28.12.2017.
-//
-
-#ifndef BACHELOR_SEMINAR_CONNECTION_H
-#define BACHELOR_SEMINAR_CONNECTION_H
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
 
 #include <netdb.h>
@@ -48,4 +44,4 @@ private:
     bool setSocketBlocking(int socket, bool blocking);
 };
 
-#endif //BACHELOR_SEMINAR_CONNECTION_H
+#endif //CONNECTION_H

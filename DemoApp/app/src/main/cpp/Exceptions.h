@@ -1,9 +1,5 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
-#ifndef BACHELOR_SEMINAR_EXCEPTIONBASE_H
-#define BACHELOR_SEMINAR_EXCEPTIONBASE_H
+#ifndef EXCEPTIONBASE_H
+#define EXCEPTIONBASE_H
 
 
 #include <exception>
@@ -73,4 +69,4 @@ public:
     ~HookException();
 };
 
-#endif //BACHELOR_SEMINAR_EXCEPTIONBASE_H
+#endif //EXCEPTIONBASE_H

@@ -1,9 +1,5 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
-#ifndef BACHELOR_SEMINAR_UTIL_H
-#define BACHELOR_SEMINAR_UTIL_H
+#ifndef UTIL_H
+#define UTIL_H
 
 #include <android/log.h>
 #include <jni.h>
@@ -56,4 +52,4 @@ namespace util {
 }
 
 
-#endif //BACHELOR_SEMINAR_UTIL_H
+#endif //UTIL_H

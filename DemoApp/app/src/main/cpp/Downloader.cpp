@@ -1,7 +1,3 @@
-//
-// Created by Neconspictor on 02.01.2018.
-//
-
 #include "Downloader.h"
 #include "Exceptions.h"
 #include "Util.h"
