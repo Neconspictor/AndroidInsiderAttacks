@@ -1,0 +1,9 @@
+Important: The DemoApp tries to connect to the host machine, by using the address "10.0.2.2". But this will only work correctly, if the app is started 
+inside an Android Virtual Device. Maybe it works, too, if the app is started on an Android Device, that is usb connected to a computer, but this is not
+tested!
+
+To create a debug build without Android Studio, but installed gradle, execute:
+gradlew assembleDebug
+
+To import the project into Android Studio:
+File -> Open -> choose the build.gradle file in this folder
