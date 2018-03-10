@@ -22,7 +22,6 @@ import javax.net.ssl.TrustManagerFactory;
 /**
  * The network layer of the benign demo app.
  */
-
 public class NetworkManager {
 
     private List<OnMessageReceiveListener> listeners = new ArrayList<>();
@@ -57,7 +56,6 @@ public class NetworkManager {
         try {
             initTLS(PUBLIC_KEYSTORE_FILE, PUBLIC_KEYSTORE_PASSWORD);
         } catch (CertificateException
-                | NoSuchAlgorithmException
                 | IOException
                 | KeyManagementException
                 | KeyStoreException
@@ -86,55 +84,141 @@ public class NetworkManager {
     public synchronized void addOnMessageReceiveListener(OnMessageReceiveListener listener) {
         listeners.add(listener);
     }
-    
+
 
     /**
-     *
-     * @param keyStoreFile
-     * @param pass
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
-     * @throws IOException
-     * @throws CertificateException If an error occurs while negotiating SSL certificates
-     * @throws UnrecoverableKeyException
-     * @throws KeyManagementException
+     * Inits the SSL factory with the TLS algorithm.
+     * The trust store is loaded from the provided key store file.
+     * @param keyStoreFile The key store
+     * @param pass The password for the key store file.
+     * @throws KeyStoreException If an error occurs that is related with loading or initializing
+     *  the key store.
+     * @throws IOException If an IO error occurs
+     * @throws CertificateException if any of the certificates in the keystore could not be loaded
+     * @throws UnrecoverableKeyException If keys in the key store cannot be recovered
+     *          (e.g. the given password is wrong).
+     * @throws KeyManagementException if the ssl context cannot be initialized
      */
-    private void initTLS(String keyStoreFile, String pass) throws NoSuchAlgorithmException,
+    private void initTLS(String keyStoreFile, String pass) throws
             KeyStoreException, IOException, CertificateException, UnrecoverableKeyException,
             KeyManagementException {
         InputStream keyStoreStream = readFromRawFolder(keyStoreFile);
         InputStream trustStoreStream = readFromRawFolder(keyStoreFile);
 
+        KeyManagerFactory kmf = createAndInitKeyManagerFactory(keyStoreStream, pass);
+        TrustManagerFactory tmf = createAndInitTrustManagerFactory(trustStoreStream, pass);
 
-        KeyStore keyStore = KeyStore.getInstance("PKCS12");
-        keyStore.load(null, null);
-        keyStore.load(keyStoreStream, pass.toCharArray());
-
-        KeyManagerFactory kmf =
-                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(keyStore, pass.toCharArray());
-
-
-
-        KeyStore trustStore = KeyStore.getInstance("PKCS12");
-        trustStore.load(trustStoreStream, pass.toCharArray());
-
-        // init the trust networkManager factory by read certificates
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        tmf.init(trustStore);
-
-        // 3. init the SSLContext using kmf and tmf above
-        sslContext = SSLContext.getInstance("TLS");
-        //sslContext.init(kmf.getKeyManagers(), null, null);
+        sslContext = getTLSContext();
         sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
         SSLContext.setDefault(sslContext);
 
         factory = sslContext.getSocketFactory();
     }
 
+    /**
+     * Creates and initializes a TrustManagerFactory with a given key store (provided as input stream).
+     * @param in The key store
+     * @param password The password of the keystore
+     *
+     * @return A TrustManagerFactory that is initialized with the key store.
+     *
+     * @throws KeyStoreException If the created TrustManagerFactory could not be initialized.
+     * @throws CertificateException if any of the certificates in the keystore could not be loaded
+     * @throws IOException If any IO error occurs.
+     */
+    private TrustManagerFactory createAndInitTrustManagerFactory(InputStream in, String password) throws
+            KeyStoreException,
+            CertificateException,
+            IOException {
+
+        TrustManagerFactory tmf = getTrustManagerFactory();
+        KeyStore trustStore = getPKCS12KeyStore();
+
+        try {
+            trustStore.load(in, password.toCharArray());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("NoSuchAlgorithmException thrown for default algorithm!", e);
+        }
+
+        tmf.init(trustStore);
+        return tmf;
+    }
+
+
+    /**
+     * Creates and initializes a KeyManagerFactory with a given key store (provided as input stream).
+     * @param in The key store
+     * @param password The password of the keystore
+     *
+     * @return A KeyManagerFactory that is initialized with the key store.
+     *
+     * @throws IOException If any IO error occurs.
+     * @throws CertificateException If any of the certificates in the keystore could not be loaded
+     * @throws UnrecoverableKeyException If keys in the key store cannot be recovered
+     *          (e.g. the given password is wrong).
+     * @throws KeyStoreException If the created KeyManagerFactory could not be initialized.
+     */
+    private KeyManagerFactory createAndInitKeyManagerFactory(InputStream in, String password) throws
+            IOException,
+            CertificateException,
+            UnrecoverableKeyException,
+            KeyStoreException {
+        KeyManagerFactory kmf;
+
+        try {
+            kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            KeyStore keyStore = getPKCS12KeyStore();
+            keyStore.load(in, password.toCharArray());
+            kmf.init(keyStore, password.toCharArray());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("NoSuchAlgorithmException thrown for default algorithm!", e);
+        }
+
+        return kmf;
+    }
+
+
+    /**
+     * @param fileNameWithoutExtension The file name without file extension
+     * @return An input stream from a file in the app's raw folder.
+     */
     private InputStream readFromRawFolder(String fileNameWithoutExtension) {
         return resources.openRawResource(
                 resources.getIdentifier(fileNameWithoutExtension,
                         "raw", packageName));
+    }
+
+
+    /**
+     * @return A PKCS12 key store instance.
+     */
+    private KeyStore getPKCS12KeyStore() {
+        try {
+            return KeyStore.getInstance("PKCS12");
+        } catch (KeyStoreException e) {
+            throw new RuntimeException("PKCS12 KeyStore not found!", e);
+        }
+    }
+
+    /**
+     * @return A SSLContext that uses the TLS algorithm.
+     */
+    private SSLContext getTLSContext() {
+        try {
+            return SSLContext.getInstance("TLS");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("TLS context not found!", e);
+        }
+    }
+
+    /**
+     * @return A TrustManagerFactory using the default algorithm.
+     */
+    private TrustManagerFactory getTrustManagerFactory() {
+        try {
+            return TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Couldn't get TrustManagerFactory instance for default algorithm!", e);
+        }
     }
 }
