@@ -1,0 +1,16 @@
+Important: The DemoApp tries to connect to the host machine, by using the address "10.0.2.2". But this will only work correctly, if the app is started 
+inside an Android Virtual Device. Maybe it works, too, if the app is started on an Android Device, that is usb connected to a computer, but this is not
+tested!
+
+The Android Virtual Device has to use Android 8 and an x86 image.
+
+
+To import the project into Android Studio:
+File -> Open -> choose the build.gradle file in this folder
+Then clean and rebuild the project.
+
+
+To create a debug build without Android Studio, execute (gradle needn't to be installed): gradlew assembleDebug
+Make sure that the Android sdk is in the path variable 'ANDROID_HOME' or you have created a file called local.properties in this folder with the following content:
+ndk.dir=<Android-sdk-path>/ndk-bundle
+sdk.dir=<Android-sdk-path>
