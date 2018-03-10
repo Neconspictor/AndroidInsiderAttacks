@@ -1,23 +1,24 @@
 \section{Introduction}
 
-Android allows developers to write native code that is able to interact with the Java code. This can be accomplished with the Native Development Kit (NDK). In the documentation of the NDK it is stated, that the NDK can be useful in the following cases \cite{AndroidNdkIntro}
+Android allows developers to write native code that is able to interact with the Java code. This can be accomplished with the Native Development Kit (NDK). The NDK documentation declares the Native Development Kit useful in the following cases \cite{AndroidNdkIntro}:
 
 \begin{itemize}
 	\item Squeeze extra performance out of a device to achieve low latency or run computationally intensive applications, such as games or physics simulations.
 	\item Reuse your own or other developers' C or C++ libraries. 
 \end{itemize}
 
-In \cite{5669738} it was shown that the use of native code can speed up Java applications considerable.
+In \cite{5669738} was shown that the use of native code can considerably speed up Java applications.
 
 As stated in \cite{AndroidNdkIntro} , the communication between Java and the native code is done via Java Native Interfaces(JNI) \footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/jniTOC.html}}. 
 JNI is a native programing interface, so that Java code running in the JVM can interoperate with applications and libraries written in other programming languages \cite{JNISpecChapter1}.
 
 JNI wasn't designed with security in mind and doesn't do any security checks. This fact can be derived from the design specification document from JNI (section 'Reporting Programming Errors')\cite{JNISpecChapter2}.
 The native code has direct access to the memory of the running process and
-as the Java and native code are running in the same memory address space, the native code is able to read and write arbitrary memory from the JVM \cite[p. 2]{Afonso2016GoingNU}.
+since the Java and native code are running in the same memory address space, the native code is able to read and write arbitrary memory from the JVM \cite[p. 2]{Afonso2016GoingNU}.
 
-It can be registered, that JNI is a powerful tool that doesn't restrict the developer. On the one side this speeds up execution of native code and is convenient for developers, but on the other side it is also very dangerous seen from a security perspective.
-If an attacker is able to execute code in a native library the executed code can abuse the power of JNI, too.\\
+In sum is to register, that JNI is a powerful tool without
+restricting the developer. Speeding up execution
+of native code is convenient for developers, yet, from a security perspective it is also a very dangerous tool. If an attacker is able to execute code in a native library the executed code can also abuse the power of JNI.\\
 
 A selection of possible attacks exploiting JNI are:
 \begin{itemize}
@@ -31,13 +32,19 @@ libraries can enable attackers to read and write the JVM's memory \cite[p. 3]{Su
 	We will present later in this paper an example for this kind of attack.
 \end{itemize}
 
-It should be highlighted that quite a few Android apps use native code: In a survey of Google Play apps \cite[p. 3]{Sun:2014:NPA:2627393.2627396} it was found out, that 86\% of the top 50 apps have been shipped with native code. It was also stated, that there were also apps (like Skype), that use native code for a common core being shared among multiple platforms. If an app would be compromised through a flaw in the native code, possible thousands or even millions of systems would be affected, thus these apps could be an interesting target for attackers. \\
+
+There is to be emphasized that quite a few Android apps use native code: A survey of Google Play apps \cite[p. 3]{Sun:2014:NPA:2627393.2627396} revealed, that 86\% of the top 50 apps have been shipped with native code. There were also apps (like Skype), that use native code for a common core being shared among multiple platforms. If an app would be compromised through a flaw in the native code, possible thousands or even millions of systems would be affected and these apps could be an interesting target for attackers.\\
+
 
 In this paper we will analyze how the security vulnerabilities exposed by JNI can be abused by an attacker, if he is able to execute code in a native library, and how the attacker can compromise the benign target app using native code.
+The following sections of this paper are structured as follows: 
+\begin{itemize}
+\item In Section 2 we will look at other works dealing with
+security concerns of native code
+\item In Section 3 we will discuss techniques and methods as working basis for Section 4
+\item In Section 4 finally the aforementioned attack scenario will be presented
+\end{itemize}
 
-The following sections of this paper are structured as follows: In Section 2 we will look at other works dealing with security concerns of native code, in Section 3 we will discuss techniques and methods we will need for Section 4, where finally the aforementioned attack scenario is presented. 
-
-%\textbf{TODO:} Describe shortly the method for the attack scenario
 
 \section{Related work}
 
@@ -182,7 +189,7 @@ As java methods aren't directly laid out as machine code instruction, doing a tr
 
 As a first step, the java method, that should be hooked, is made a native method. This can be done by assigning the corresponding ArtMethod the native flag to the access\_flags\_ field. Different types of java methods (e.g. native methods, JIT-compiled or OAT compiled) are handled differently by ART. By making the method native, we don't need to differentiate between the different types of java methods.
 
-The second step is to assign the \\\emph{entry\_point\_from\_quick\_compiled\_code\_} field to a memory address where user defined code lies. In YAHFA this is dynamically created code that will redirect to another java method (the hook method). As we will perform an attack from native code, we will redirect to a prolog machine code and will let point the data\_ pointer to the native code we want execute.
+The second step is to assign the \\\emph{entry\_point\_from\_quick\_compiled\_code\_} field to a memory address where user defined code lies. In YAHFA this is dynamically created code that will redirect to another java method (the hook method). In our attack we will also do this. In the implementation section we will discuss why we did it this way.
 
 In order to call the original java method, before any changes are performed all class members that are going to be changed are stored in a backup. 
 Therefore the original (hooked) java method is copied and its content is stored in a new java method (the so-called bakup method).
@@ -250,6 +257,21 @@ To encrypt the communication, we used the TLSv1.2 protocol.
 
 In order to access the ArtMethod objects of a java method we used JNI as it allows to get a class instance with a function call of  \emph{FindClass}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#FindClass}} and \emph{GetMethodID}\footnote{\url{https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html\#GetMethodID}} for retrieving a \emph{jmethod} from a method by its name. The \emph{jmethod} is actually defined as an empty struct. But it is a placeholder type for not revealing JVM internals to user code. And in fact, the returned \emph{jmethod} object is actually a pointer to an ArtMethod object. At least, this applies for the android platform.
 
+
+As we want to redirect execution flow to a native function, it would be good to change the original ArtMethod to a native ArtMethod that calls the native function. In theory it should be possible, but we didn't get it running, properly. Although it was possible to call the native function, inside the native function we couldn't call the backup ArtMethod anymore: The execution flow hangs up. Obviously, we forget something to do really that is important, but we didn't find out the solution. 
+
+But we found a workaround, that is stable: Instead of jumping directly to native code, we redirect the execution flow from the original ArtMethod to helper (native) ArtMethod. The helper ArtMethod than is changed so that it directs to the wished native function.
+
+So, our final hooking process as it is done by our attack is illustrated in figure \ref{HookProcess}:
+
+\begin{figure}[H]
+	\begin{center}
+		\includegraphics[scale=0.45]{figures/HookProcess.png}
+	\end{center}
+	\caption{Final hooking process using the hook helper workaround}
+	\label{HookProcess}
+\end{figure}
+
 %Until now only a proof of concept implementation is done that is rather rudimentary. 
 %Besides feature completion the final implementation will be furnished with a nice logging Activity and fully documented source code. 
 
@@ -266,3 +288,5 @@ In order to access the ArtMethod objects of a java method we used JNI as it allo
 In this paper we have shown how JNI could be abused when untrusted native code is loaded by a java android app. Additionally we have shown how traditional function hooking can be translated to the ART environment. We used trampoline hooks to intercept messages that were send or received by the benign app.
 
 For the attack the benign app has to have internet permission \footnote{\url{https://developer.android.com/reference/android/Manifest.permission.html\#INTERNET}}. For our demo app this is no problem, as the benign app itself access the internet. But the files that are downloaded from the evil server could also be stored as a char array inside the evil library. So the presented attack actually needs no special permissions.
+
+We didn't find out, why it isn't possible to directly redirect execution flow from an ArtMethod to a native function if the ArtMethod wasn't an ArtMethod for a native java method. But it was possible by a native helper ArtMethod. In future work the reasons for this issue could be find out and properly solved. 
