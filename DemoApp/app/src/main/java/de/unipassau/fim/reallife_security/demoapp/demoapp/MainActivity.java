@@ -21,8 +21,12 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.IOException;
 
 
+/**
+ * Android activity that is responsible for setting up the demo app.
+ */
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'native-lib' library on application startup.
@@ -30,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("evil-lib");
     }
 
+    /**
+     * Used for network stuff.
+     */
     private NetworkManager networkManager;
 
     @Override
@@ -43,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             networkManager = new NetworkManager(getResources(), getPackageName());
-        } catch (Exception e) {
-            showFatalMessageBox("Couldn't init TLS", e);
+        } catch (IOException e) {
+            showFatalMessageBox("Couldn't init network manager", e);
             return;
         }
 
@@ -125,9 +132,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        stringFromJNI();
-        //Test.test();
-
     }
 
     @Override
@@ -158,19 +162,26 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public native String stringFromJNI();
-
+    /**
+     * Activates the hooks for the send and receive methods.
+     */
     private native void activateHookJNI();
 
+    /**
+     * Deactivates the hook for the send and receive methods.
+     */
     private native void deactivateHookJNI();
 
-    //*********************************************************
-//generic dialog, takes in the method name and error message
-//*********************************************************
+
+    /**
+     * Shows a fatal error message box. When the user clicked the 'ok' button the app
+     * shuts down.
+     * @param method The name of the method the exception has been thrown.
+     * @param e The exception that has been thrown
+     */
     private void showFatalMessageBox(String method, Exception e)
     {
         final Exception copy = e;
-        Log.wtf("MainActivity::onCreate", "Couldn't init TLS", copy);
         final Activity activity = this;
         AlertDialog.Builder messageBox = new AlertDialog.Builder(this);
         messageBox.setTitle(method);
@@ -179,9 +190,6 @@ public class MainActivity extends AppCompatActivity {
         messageBox.setNeutralButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //Log.e("", "Clicked!");
-                //Log.e("MainActivity::onCreate", "Couldn't init TLS", copy);
-                //activity.finishAndRemoveTask ();
                 activity.finishAffinity();
             }
         });

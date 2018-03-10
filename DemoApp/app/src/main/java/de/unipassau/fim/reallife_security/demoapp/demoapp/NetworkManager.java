@@ -20,7 +20,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 /**
- * Handles the network layer of the benign app.
+ * The network layer of the benign demo app.
  */
 
 public class NetworkManager {
@@ -31,15 +31,39 @@ public class NetworkManager {
     private SSLContext sslContext;
     private SSLSocketFactory factory;
 
+    /**
+     * For the android emulator this is the hst name that means the underlying host machine.
+     */
     public static final String host = "10.0.2.2";
+
+    /**
+     * The port number on that the remote server provides its service.
+     */
     public static final int port = 8080;
 
-    public NetworkManager(Resources resources, String packageName) throws CertificateException,
-            UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
-            KeyManagementException, IOException {
+    private static final String PUBLIC_KEYSTORE_FILE = "public_keystore";
+    private static final String PUBLIC_KEYSTORE_PASSWORD = "password";
+
+    /**
+     * Creates a new NetworkManager object.
+     * @param resources The app's resources
+     * @param packageName The package name of the app
+     *
+     * @throws IOException If the network manager couldn't be initialized.
+     */
+    public NetworkManager(Resources resources, String packageName) throws IOException {
         this.resources = resources;
         this.packageName = packageName;
-        initSSL("public_keystore", "password");
+        try {
+            initTLS(PUBLIC_KEYSTORE_FILE, PUBLIC_KEYSTORE_PASSWORD);
+        } catch (CertificateException
+                | NoSuchAlgorithmException
+                | IOException
+                | KeyManagementException
+                | KeyStoreException
+                | UnrecoverableKeyException e) {
+            throw new IOException("Couldn't initialize TLS. Cause:", e);
+        }
     }
 
     /**
@@ -62,9 +86,20 @@ public class NetworkManager {
     public synchronized void addOnMessageReceiveListener(OnMessageReceiveListener listener) {
         listeners.add(listener);
     }
+    
 
-    //pass a p12 or pfx file (file may be on classpath also)
-    private void initSSL(String keyStoreFile, String pass) throws NoSuchAlgorithmException,
+    /**
+     *
+     * @param keyStoreFile
+     * @param pass
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     * @throws IOException
+     * @throws CertificateException If an error occurs while negotiating SSL certificates
+     * @throws UnrecoverableKeyException
+     * @throws KeyManagementException
+     */
+    private void initTLS(String keyStoreFile, String pass) throws NoSuchAlgorithmException,
             KeyStoreException, IOException, CertificateException, UnrecoverableKeyException,
             KeyManagementException {
         InputStream keyStoreStream = readFromRawFolder(keyStoreFile);

@@ -1,9 +1,13 @@
 package de.unipassau.fim.reallife_security.demoapp.demoapp;
 
 /**
- * Created by David Goeth on 15.01.2018.
+ * An interface for observers which listens to received messages.
  */
-
 public interface OnMessageReceiveListener {
+
+    /**
+     * Should be called if the observed object has received a string message.
+     * @param msg The message that has been received.
+     */
     void onReceive(String msg);
 }

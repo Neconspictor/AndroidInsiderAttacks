@@ -15,7 +15,6 @@ import java.net.Socket;
 import java.util.List;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocket;
 
 /**
  * A task for sending a text message to a remote server.
@@ -47,7 +46,6 @@ class SendTask extends AsyncTask<String, Void, String> {
         this.timeout = timeout;
     }
 
-    //protected native String doInBackgroundTest(String... messages);
 
     /**
      * Sends a message to the server and returns the server's response.
@@ -88,6 +86,12 @@ class SendTask extends AsyncTask<String, Void, String> {
         return response;
     }
 
+    /**
+     * Reads the response of the server.
+     * @param reader the reader to get the response from.
+     * @return The response of the server.
+     * @throws IOException If any IO error occurs.
+     */
     private String readResponse(BufferedReader reader) throws IOException {
         String response = null;
 
@@ -125,6 +129,12 @@ class SendTask extends AsyncTask<String, Void, String> {
         return response;
     }
 
+    /**
+     * Sends a message to the server.
+     * @param message The message to send
+     * @param writer The writer that wraps of a socket connection.
+     * @throws IOException If any IO error occurs.
+     */
     private void writeMessage(String message, BufferedWriter writer) throws IOException {
         int contentLength = message.length();
         writer.write(String.valueOf(contentLength));
@@ -149,6 +159,10 @@ class SendTask extends AsyncTask<String, Void, String> {
         }
     }
 
+    /**
+     * Closes a Closable and suppresses any thrown IO-Exception.
+     * @param closeable The Closable to close.
+     */
     private void closeSilently(Closeable closeable) {
         if (closeable == null) return;
         try {
